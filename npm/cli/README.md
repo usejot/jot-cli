@@ -28,7 +28,7 @@ then `jot init` in each repo picks which one it uses. `jot profile <name> <comma
 ## Commands
 
 ```
-jot 0.1.3: your Jot feedback, in the terminal and in your coding agent.
+jot 0.1.4: your Jot feedback, in the terminal and in your coding agent.
 
 Get started
   jot login                       connect this terminal to a workspace (opens the browser)
@@ -62,7 +62,8 @@ The profile in use: --profile, then JOT_PROFILE, then the repo's .jot.json, then
 ## Claude Code plugin
 
 ```
-/plugin install jot --marketplace usejot/claude-plugins
+/plugin marketplace add usejot/claude-plugins
+/plugin install jot@usejot
 ```
 
 Docs: https://docs.usejot.co/docs/ai/cli

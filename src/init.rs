@@ -6,14 +6,14 @@
 
 use std::fs;
 use std::io::{BufRead, IsTerminal, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use serde_json::{Map, Value};
 
 use crate::contract::agent::{agents_md, skill};
 use crate::contract::cli::{self as c, copy::messages, env as names, paths};
 use crate::contract::{AgentWhoamiResponse, McpServerEntry, RepoBinding};
-use crate::profiles::{connect, pretty};
+use crate::profiles::{connect, pretty, user_home, Env};
 use crate::text::fill;
 use crate::{CliError, Context, Result};
 
@@ -72,6 +72,69 @@ pub fn merge_mcp_config(existing: Option<Value>, entry: &McpServerEntry) -> Resu
     servers.insert("jot".to_string(), serde_json::to_value(entry)?);
     config.insert("mcpServers".to_string(), Value::Object(servers));
     Ok(McpMerge { config: Value::Object(config), removed_token })
+}
+
+// ---------------------------------------------------------------- Claude Code
+
+/// Where Claude Code keeps its user config and its plugin registry (`cli::claude_code`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ClaudePaths {
+    pub user_config: PathBuf,
+    pub installed_plugins: PathBuf,
+}
+
+impl ClaudePaths {
+    /// `$CLAUDE_CONFIG_DIR` holds both when set; else `~/.claude.json` and `~/.claude/plugins/…`.
+    pub fn from_env(env: &Env) -> Self {
+        let registry = c::claude_code::INSTALLED_PLUGINS;
+        match env.get(c::claude_code::CONFIG_DIR_ENV) {
+            Some(dir) => ClaudePaths {
+                user_config: Path::new(dir).join(c::claude_code::USER_CONFIG),
+                installed_plugins: Path::new(dir).join(registry),
+            },
+            None => {
+                let home = user_home(env);
+                ClaudePaths {
+                    user_config: home.join(c::claude_code::USER_CONFIG),
+                    installed_plugins: home.join(c::claude_code::CONFIG_DIR).join(registry),
+                }
+            }
+        }
+    }
+}
+
+/// A JSON file, None when it is missing or not JSON: these files are Claude Code's, read best effort.
+fn read_json(path: &Path) -> Option<Value> {
+    serde_json::from_str(&fs::read_to_string(path).ok()?).ok()
+}
+
+/// True when the Jot plugin for Claude Code is installed: `jot@usejot` in the registry's `plugins`.
+pub fn plugin_installed(claude: &ClaudePaths) -> bool {
+    let key = format!("{}@{}", c::packages::CLAUDE_PLUGIN, c::packages::CLAUDE_MARKETPLACE);
+    read_json(&claude.installed_plugins).and_then(|registry| registry.get("plugins")?.get(&key).cloned()).is_some()
+}
+
+/// The first file besides the plugin that also configures a `jot` MCP server:
+/// `.claude.json` (top level, or this directory's project entry), then `./.mcp.json`.
+pub fn other_jot_server(claude: &ClaudePaths, cwd: &Path) -> Option<PathBuf> {
+    let has_jot = |config: &Value| config.get("mcpServers").and_then(|servers| servers.get("jot")).is_some();
+
+    // 1. the user config: every project's, and this directory's own entry
+    if let Some(config) = read_json(&claude.user_config) {
+        let project = config.get("projects").and_then(|projects| projects.get(cwd.to_string_lossy().as_ref()));
+        if has_jot(&config) || project.is_some_and(has_jot) {
+            return Some(claude.user_config.clone());
+        }
+    }
+
+    // 2. the repo's .mcp.json, which `jot init` used to write
+    let repo = cwd.join(paths::MCP_CONFIG);
+    read_json(&repo).filter(has_jot).map(|_| repo)
+}
+
+/// The one-line warning about a second `jot` server, naming its file.
+pub fn duplicate_warning(file: &Path) -> String {
+    fill(messages::MCP_DUPLICATE_SERVER, &[("file", &file.display().to_string())])
 }
 
 /// AGENTS.md with the jot section in place: replaced between its markers when
@@ -149,6 +212,32 @@ fn choose_project(reach: &AgentWhoamiResponse) -> Result<Option<String>> {
     }
 }
 
+/// Writes the jot entry into the repo's .mcp.json, or leaves the file alone
+/// when the Claude Code plugin already runs the server (two would load). The lines to print.
+fn setup_mcp(cwd: &Path, plugin_installed: bool) -> Result<Vec<&'static str>> {
+    // 1. the plugin provides it: a second entry would start a second server
+    if plugin_installed {
+        return Ok(vec![messages::INIT_MCP_PLUGIN_PROVIDES]);
+    }
+
+    // 2. merged into whatever is there
+    let mcp_path = cwd.join(paths::MCP_CONFIG);
+    let existing =
+        match read_optional(&mcp_path)? {
+            Some(text) => Some(serde_json::from_str(&text).map_err(|_| {
+                CliError(fill(messages::INIT_INVALID_JSON, &[("path", &mcp_path.display().to_string())]))
+            })?),
+            None => None,
+        };
+    let merged = merge_mcp_config(existing, &server_entry(jot_on_path(c::packages::BIN)))?;
+    fs::write(&mcp_path, pretty(&merged.config)?)?;
+    let mut lines = vec![messages::INIT_MCP_WRITTEN];
+    if merged.removed_token {
+        lines.push(messages::INIT_MCP_TOKEN_REMOVED);
+    }
+    Ok(lines)
+}
+
 pub fn init(ctx: &Context) -> Result<()> {
     // 1. a saved profile: .jot.json names it, so a bare env token cannot be bound
     let profile = connect(ctx)?;
@@ -173,20 +262,10 @@ pub fn init(ctx: &Context) -> Result<()> {
         .map_or(messages::INIT_ALL_PROJECTS, |row| row.name.as_str());
     println!("{}", fill(messages::INIT_BINDING_WRITTEN, &[("profile", &profile.name), ("project", project_name)]));
 
-    // 3. the MCP server, tokenless: it finds the token through .jot.json
-    let mcp_path = cwd.join(paths::MCP_CONFIG);
-    let existing =
-        match read_optional(&mcp_path)? {
-            Some(text) => Some(serde_json::from_str(&text).map_err(|_| {
-                CliError(fill(messages::INIT_INVALID_JSON, &[("path", &mcp_path.display().to_string())]))
-            })?),
-            None => None,
-        };
-    let merged = merge_mcp_config(existing, &server_entry(jot_on_path(c::packages::BIN)))?;
-    fs::write(&mcp_path, pretty(&merged.config)?)?;
-    println!("{}", messages::INIT_MCP_WRITTEN);
-    if merged.removed_token {
-        println!("{}", messages::INIT_MCP_TOKEN_REMOVED);
+    // 3. the MCP server, tokenless (it finds the token through .jot.json), unless the plugin runs it
+    let plugin = plugin_installed(&ClaudePaths::from_env(&Env::from_process()));
+    for line in setup_mcp(&cwd, plugin)? {
+        println!("{line}");
     }
 
     // 4. /jot and the jot skill for Claude Code, never clobbering one somebody edited
@@ -281,6 +360,70 @@ mod tests {
         assert!(updated.starts_with("before\n") && updated.ends_with("\nafter\n"));
         assert!(!updated.contains("old text") && updated.contains(agents_md::BODY));
         assert_eq!(upsert_agents_md(Some(&updated)), None);
+    }
+
+    /// Claude Code's files in a temp dir, as CLAUDE_CONFIG_DIR would place them.
+    fn claude_in(dir: &Path, registry: Option<Value>, user_config: Option<Value>) -> ClaudePaths {
+        let env = Env([(c::claude_code::CONFIG_DIR_ENV.to_string(), dir.display().to_string())].into());
+        let claude = ClaudePaths::from_env(&env);
+        fs::create_dir_all(dir).unwrap();
+        if let Some(registry) = registry {
+            fs::create_dir_all(claude.installed_plugins.parent().unwrap()).unwrap();
+            fs::write(&claude.installed_plugins, registry.to_string()).unwrap();
+        }
+        if let Some(config) = user_config {
+            fs::write(&claude.user_config, config.to_string()).unwrap();
+        }
+        claude
+    }
+
+    #[test]
+    fn finds_the_plugin_in_the_registry() {
+        let dir = crate::profiles::tests::temp_dir("plugin");
+        assert!(!plugin_installed(&claude_in(&dir.join("none"), None, None)));
+        let other = json!({ "version": 2, "plugins": { "other@x": [] } });
+        assert!(!plugin_installed(&claude_in(&dir.join("other"), Some(other), None)));
+        let jot = json!({ "version": 2, "plugins": { "jot@usejot": [{ "scope": "user" }] } });
+        assert!(plugin_installed(&claude_in(&dir.join("jot"), Some(jot), None)));
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn init_leaves_mcp_json_alone_when_the_plugin_runs_the_server() {
+        let dir = crate::profiles::tests::temp_dir("init-plugin");
+        assert_eq!(setup_mcp(&dir, true).unwrap(), vec![messages::INIT_MCP_PLUGIN_PROVIDES]);
+        assert!(!dir.join(paths::MCP_CONFIG).exists());
+        assert_eq!(setup_mcp(&dir, false).unwrap(), vec![messages::INIT_MCP_WRITTEN]);
+        assert!(dir.join(paths::MCP_CONFIG).exists());
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn finds_a_second_jot_server_and_names_its_file() {
+        let root = crate::profiles::tests::temp_dir("dupes");
+        let cwd = root.join("repo");
+        fs::create_dir_all(&cwd).unwrap();
+        let jot = json!({ "jot": { "command": "jot", "args": ["mcp"] } });
+
+        // 1. nothing else: no warning
+        let clean = claude_in(&root.join("clean"), None, Some(json!({ "mcpServers": { "other": {} } })));
+        assert_eq!(other_jot_server(&clean, &cwd), None);
+
+        // 2. top level, or this directory's project entry, in .claude.json
+        let top = claude_in(&root.join("top"), None, Some(json!({ "mcpServers": jot })));
+        assert_eq!(other_jot_server(&top, &cwd), Some(top.user_config.clone()));
+        let projects = json!({ "projects": { cwd.to_string_lossy(): { "mcpServers": jot } } });
+        let project = claude_in(&root.join("project"), None, Some(projects));
+        assert_eq!(other_jot_server(&project, &cwd), Some(project.user_config.clone()));
+        let elsewhere = json!({ "projects": { "/somewhere/else": { "mcpServers": jot } } });
+        assert_eq!(other_jot_server(&claude_in(&root.join("elsewhere"), None, Some(elsewhere)), &cwd), None);
+
+        // 3. the repo's .mcp.json, named in the warning
+        fs::write(cwd.join(paths::MCP_CONFIG), json!({ "mcpServers": jot }).to_string()).unwrap();
+        let found = other_jot_server(&clean, &cwd).unwrap();
+        assert_eq!(found, cwd.join(paths::MCP_CONFIG));
+        assert!(duplicate_warning(&found).contains(&format!("configured in {}", found.display())));
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

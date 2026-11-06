@@ -70,9 +70,12 @@ pub fn jot_home(env: &Env) -> PathBuf {
     if let Some(home) = env.get(names::home::NAME) {
         return PathBuf::from(home);
     }
-    let user_home = env.get("HOME").or_else(|| env.get("USERPROFILE")).unwrap_or(".");
-    let default = names::home::DEFAULT;
-    PathBuf::from(user_home).join(default.trim_start_matches("~/"))
+    user_home(env).join(names::home::DEFAULT.trim_start_matches("~/"))
+}
+
+/// The user's home directory: HOME, or USERPROFILE on Windows; "." when neither is set.
+pub fn user_home(env: &Env) -> PathBuf {
+    PathBuf::from(env.get("HOME").or_else(|| env.get("USERPROFILE")).unwrap_or("."))
 }
 
 fn config_path(home: &Path) -> PathBuf {

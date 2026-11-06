@@ -4,6 +4,7 @@
 
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
+use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use crate::api::Api;
@@ -81,7 +82,7 @@ pub fn valid_port(raw: &str) -> Option<u16> {
 // ---------------------------------------------------------------- the browser
 
 /// Opens a URL in the default browser. Best effort: the URL is printed too.
-fn open_browser(url: &str) {
+pub fn open_browser(url: &str) {
     use std::process::{Command, Stdio};
     let mut command = if cfg!(target_os = "macos") {
         let mut command = Command::new("open");
@@ -216,59 +217,121 @@ fn receive(listener: &TcpListener, state: &str, api_url: &str) -> Result<Receive
     }
 }
 
-pub fn login(ctx: &Context) -> Result<()> {
-    // 1. where to sign in, and a state only this run knows
-    let env = Env::from_process();
-    let api_url =
-        ctx.args.value("api").or(env.get(names::api_url::NAME)).unwrap_or(names::api_url::DEFAULT).to_string();
-    let app_url =
-        ctx.args.value("app").or(env.get(names::app_url::NAME)).unwrap_or(names::app_url::DEFAULT).to_string();
-    let wanted = ctx.args.value("profile");
-    let state = new_state();
+/// Where to sign in, and what to save the profile as.
+pub struct SignInInput {
+    pub home: PathBuf,
+    pub api_url: String,
+    pub app_url: String,
+    /// The profile name asked for; None: the workspace's existing profile, or a new slug.
+    pub wanted: Option<String>,
+}
 
-    // 2. the browser picks the workspace; the token comes back to the loopback host
+/// The profile a finished sign-in saved.
+#[derive(Debug, PartialEq, Eq)]
+pub struct SignedIn {
+    pub name: String,
+    pub org: String,
+    pub email: Option<String>,
+    pub is_default: bool,
+}
+
+/// A sign-in waiting for the browser: the loopback listener, and the URL that
+/// opens the dashboard. It prints nothing, so `jot mcp` can run it without
+/// touching stdout.
+pub struct PendingSignIn {
+    pub url: String,
+    listener: TcpListener,
+    state: String,
+    input: SignInInput,
+}
+
+/// Binds the loopback port and builds the dashboard URL. Nothing is opened or printed.
+pub fn begin_sign_in(input: SignInInput) -> Result<PendingSignIn> {
+    // 1. a state only this run knows, and a free port on the loopback host
+    let state = new_state();
     let listener = TcpListener::bind((rules::LOOPBACK_HOST, 0))?;
     let port = listener.local_addr()?.port();
+
+    // 2. the dashboard must accept both, or the browser would show an error
     if !valid_state(&state) || valid_port(&port.to_string()).is_none() {
         return Err(CliError(fill(
             messages::LOGIN_TOKEN_REFUSED,
             &[("message", "the dashboard would refuse this port or state")],
         )));
     }
-    let url = connect_url(&app_url, port, &state, &hostname(), wanted);
-    println!("{}", messages::LOGIN_OPENING);
-    println!("{}", fill(messages::LOGIN_URL, &[("url", &url)]));
-    open_browser(&url);
-    let received = receive(&listener, &state, &api_url)?;
+    let url = connect_url(&input.app_url, port, &state, &hostname(), input.wanted.as_deref());
+    Ok(PendingSignIn { url, listener, state, input })
+}
 
-    // 3. the profile: the name asked for, the one already used for this workspace, or a new slug
-    let mut config = read_config(&ctx.home)?;
+impl PendingSignIn {
+    /// Waits (up to `TIMEOUT_SECONDS`) for the token, checks it, and saves the profile.
+    pub fn finish(self) -> Result<SignedIn> {
+        let received = receive(&self.listener, &self.state, &self.input.api_url)?;
+        save_profile(&self.input, received)
+    }
+}
+
+/// The profile: the name asked for, the one already used for this workspace, or a new slug.
+fn save_profile(input: &SignInInput, received: Received) -> Result<SignedIn> {
+    // 1. which name
+    let mut config = read_config(&input.home)?;
     let org = received.reach.org.name.clone();
     let existing = config
         .profiles
         .iter()
-        .find(|(_, profile)| profile.org_name.as_deref() == Some(org.as_str()) && profile.api_url == api_url)
+        .find(|(_, profile)| profile.org_name.as_deref() == Some(org.as_str()) && profile.api_url == input.api_url)
         .map(|(name, _)| name.clone());
-    let name = wanted.map(str::to_string).or(existing).unwrap_or_else(|| unique_name(&slugify(&org), &config.profiles));
-    let profile =
-        CliProfile { api_url, token: received.token, org_name: Some(org.clone()), email: received.email.clone() };
+    let name = input.wanted.clone().or(existing).unwrap_or_else(|| unique_name(&slugify(&org), &config.profiles));
+
+    // 2. saved; the first profile becomes the default
+    let profile = CliProfile {
+        api_url: input.api_url.clone(),
+        token: received.token,
+        org_name: Some(org.clone()),
+        email: received.email.clone(),
+    };
     config.profiles.insert(name.clone(), profile);
     if config.default.is_none() {
         config.default = Some(name.clone());
     }
-    write_config(&ctx.home, &config)?;
+    write_config(&input.home, &config)?;
 
-    // 4. said plainly, with the next step
-    let who = received.email.as_deref().map(|email| fill(messages::LOGIN_WHO, &[("email", email)])).unwrap_or_default();
-    let is_default = if config.default.as_deref() == Some(name.as_str()) {
+    let is_default = config.default.as_deref() == Some(name.as_str());
+    Ok(SignedIn { name, org, email: received.email, is_default })
+}
+
+/// Where `jot login` signs in: the flags, then the env, then the hosted defaults.
+pub fn sign_in_input(ctx: &Context, wanted: Option<String>) -> SignInInput {
+    let env = Env::from_process();
+    let api_url =
+        ctx.args.value("api").or(env.get(names::api_url::NAME)).unwrap_or(names::api_url::DEFAULT).to_string();
+    let app_url =
+        ctx.args.value("app").or(env.get(names::app_url::NAME)).unwrap_or(names::app_url::DEFAULT).to_string();
+    SignInInput { home: ctx.home.clone(), api_url, app_url, wanted }
+}
+
+pub fn login(ctx: &Context) -> Result<()> {
+    // 1. the dashboard URL, with a state only this run knows
+    let pending = begin_sign_in(sign_in_input(ctx, ctx.args.value("profile").map(str::to_string)))?;
+
+    // 2. the browser picks the workspace; the token comes back to the loopback host
+    println!("{}", messages::LOGIN_OPENING);
+    println!("{}", fill(messages::LOGIN_URL, &[("url", &pending.url)]));
+    open_browser(&pending.url);
+    let signed = pending.finish()?;
+
+    // 3. said plainly, with the next step
+    let who = signed.email.as_deref().map(|email| fill(messages::LOGIN_WHO, &[("email", email)])).unwrap_or_default();
+    let is_default = if signed.is_default {
         messages::LOGIN_IS_DEFAULT.to_string()
     } else {
-        fill(messages::LOGIN_NOT_DEFAULT, &[("name", &name)])
+        fill(messages::LOGIN_NOT_DEFAULT, &[("name", &signed.name)])
     };
-    println!(
-        "{}",
-        fill(messages::LOGIN_CONNECTED, &[("org", &org), ("who", &who), ("name", &name), ("isDefault", &is_default)])
+    let connected = fill(
+        messages::LOGIN_CONNECTED,
+        &[("org", &signed.org), ("who", &who), ("name", &signed.name), ("isDefault", &is_default)],
     );
+    println!("{connected}");
     println!("{}", messages::LOGIN_NEXT);
     Ok(())
 }
@@ -311,6 +374,39 @@ mod tests {
         let parsed = parse_connect(url.split_once('?').unwrap().1);
         assert_eq!(parsed["host"], "my box");
         assert_eq!(hashed_bytes(16).len(), 16);
+    }
+
+    #[test]
+    fn a_sign_in_saves_the_workspace_once_and_the_first_is_the_default() {
+        let home = crate::profiles::tests::temp_dir("signin");
+        let input = |wanted: Option<&str>| SignInInput {
+            home: home.clone(),
+            api_url: "https://api.test".into(),
+            app_url: "https://app.test".into(),
+            wanted: wanted.map(str::to_string),
+        };
+        let received = |org: &str, token: &str| Received {
+            token: token.into(),
+            email: Some("me@x.test".into()),
+            reach: AgentWhoamiResponse {
+                org: crate::contract::NamedRef { id: "o".into(), name: org.into() },
+                ..AgentWhoamiResponse::default()
+            },
+        };
+
+        // 1. the first: named from the workspace, and the default
+        let first = save_profile(&input(None), received("Acme Inc.", "t1")).unwrap();
+        assert_eq!((first.name.as_str(), first.is_default), ("acme-inc", true));
+
+        // 2. the same workspace again: the same profile, its token replaced
+        let again = save_profile(&input(None), received("Acme Inc.", "t2")).unwrap();
+        assert_eq!(again.name, "acme-inc");
+        assert_eq!(read_config(&home).unwrap().profiles["acme-inc"].token, "t2");
+
+        // 3. another, by name: saved beside it, not the default
+        let work = save_profile(&input(Some("work")), received("Work Co", "t3")).unwrap();
+        assert_eq!((work.name.as_str(), work.is_default), ("work", false));
+        std::fs::remove_dir_all(home).unwrap();
     }
 
     #[test]

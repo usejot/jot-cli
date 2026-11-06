@@ -1,7 +1,8 @@
 {
   "name": "@usejot/cli",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "jot: your Jot feedback in the terminal and in your coding agent. Login, repo setup, watch, loop, and the MCP server (jot mcp).",
+  "mcpName": "io.github.usejot/jot",
   "homepage": "https://docs.usejot.co/docs/ai/cli",
   "bugs": "https://github.com/usejot/jot-cli/issues",
   "license": "MIT",
@@ -16,11 +17,11 @@
     "bin/jot.js"
   ],
   "optionalDependencies": {
-    "@usejot/cli-darwin-arm64": "0.1.3",
-    "@usejot/cli-darwin-x64": "0.1.3",
-    "@usejot/cli-linux-arm64": "0.1.3",
-    "@usejot/cli-linux-x64": "0.1.3",
-    "@usejot/cli-win32-x64": "0.1.3"
+    "@usejot/cli-darwin-arm64": "0.1.4",
+    "@usejot/cli-darwin-x64": "0.1.4",
+    "@usejot/cli-linux-arm64": "0.1.4",
+    "@usejot/cli-linux-x64": "0.1.4",
+    "@usejot/cli-win32-x64": "0.1.4"
   },
   "engines": {
     "node": ">=18"

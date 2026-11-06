@@ -1,7 +1,8 @@
 //! `jot mcp`, spawned as an agent spawns it: initialize, then tools/list over
-//! stdio. The tool list must equal what the published @usejot/mcp 0.8.0
+//! stdio. The first six tools must equal what the published @usejot/mcp 0.8.0
 //! answers (the contract's conformance/mcp-tools-0.8.0.json), with the one intentional
-//! change both servers make: update_status also accepts APPROVED.
+//! change both servers make: update_status also accepts APPROVED. The CLI's
+//! session tools (contract.json#cli.mcpSessionTools) come after them, only them.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -9,6 +10,7 @@ use std::process::{Command, Stdio};
 use serde_json::{json, Value};
 
 const SNAPSHOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/contract/conformance/mcp-tools-0.8.0.json");
+const CONTRACT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/contract/contract.json");
 
 /// Runs `jot mcp` with these lines on stdin; its stdout lines as JSON.
 fn exchange(lines: &[Value]) -> Vec<Value> {
@@ -105,10 +107,21 @@ fn initialize_then_tools_list_matches_the_ts_server() {
     *status = json!(["IN_PROGRESS", "RESOLVED", "APPROVED"]);
 
     let tools = answers[1]["result"]["tools"].as_array().unwrap();
-    let served: Vec<Value> = tools.iter().map(comparable).collect();
+    let served: Vec<Value> = tools.iter().take(expected.len()).map(comparable).collect();
     assert_eq!(served, expected);
 
-    // 3. every tool carries the contract's guide
+    // 3. then the session tools, in the contract's order, with the contract's schemas
+    let contract: Value = serde_json::from_str(&std::fs::read_to_string(CONTRACT).unwrap()).unwrap();
+    let session = contract["cli"]["mcpSessionTools"].as_object().unwrap();
+    let after: Vec<&Value> = tools.iter().skip(expected.len()).collect();
+    assert_eq!(after.len(), session.len());
+    for (tool, (name, guide)) in after.iter().zip(session) {
+        assert_eq!(tool["name"], json!(name));
+        assert_eq!(tool["inputSchema"], guide["inputSchema"], "{name}");
+        assert_eq!(tool["description"], guide["mcpDescription"], "{name}");
+    }
+
+    // 4. every tool carries the contract's guide
     for tool in tools {
         assert!(tool["description"].as_str().unwrap().contains("\nWhen: "), "{}", tool["name"]);
         assert!(tool["title"].is_string() && tool["annotations"].is_object());

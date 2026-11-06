@@ -72,6 +72,10 @@ Ask in the thread with `post_reply`, leave the status as it is, and tell the use
 ## Several at once
 
 When one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.
+
+## Several accounts
+
+Work and personal Jot accounts are profiles: with the `jot` CLI's server, `profiles` lists the ones on this machine, `use_profile` switches this session to another, and `connect` signs in to one more.
 "#;
     pub const EXAMPLES_MARKDOWN: &str = r#"## Examples
 
@@ -273,6 +277,10 @@ Ask in the thread with `post_reply`, leave the status as it is, and tell the use
 
 When one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.
 
+## Several accounts
+
+Work and personal Jot accounts are profiles: with the `jot` CLI's server, `profiles` lists the ones on this machine, `use_profile` switches this session to another, and `connect` signs in to one more.
+
 ## Examples
 
 ### 1. A button that does nothing
@@ -382,6 +390,10 @@ Ask in the thread with `post_reply`, leave the status as it is, and tell the use
 ## Several at once
 
 When one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.
+
+## Several accounts
+
+Work and personal Jot accounts are profiles: with the `jot` CLI's server, `profiles` lists the ones on this machine, `use_profile` switches this session to another, and `connect` signs in to one more.
 "#;
     }
     /// contract.json#agent.mcp
@@ -412,6 +424,38 @@ Then restart the agent so the tools load."#;
         pub const SCREENSHOT_MAX_BYTES: u64 = 1500000;
         pub const SCREENSHOT_TIMEOUT_MS: u64 = 8000;
     }
+    /// contract.json#agent.install
+    pub mod install {
+        /// contract.json#agent.install.claudeCode
+        pub mod claude_code {
+            pub const LABEL: &str = "Claude Code";
+            pub const COMMANDS: &[&str] = &["/plugin marketplace add usejot/claude-plugins", "/plugin install jot@usejot"];
+            pub const NOTE: &str = "Then ask Claude to connect Jot (it opens your browser), or paste an agent token when Claude Code asks.";
+        }
+        /// contract.json#agent.install.cli
+        pub mod cli {
+            pub const LABEL: &str = "Cursor, Codex, Windsurf, any agent";
+            pub const COMMANDS: &[&str] = &["npx @usejot/cli login", "npx @usejot/cli init"];
+            pub const NOTE: &str = "`login` opens your browser to pick a workspace. `init` connects the repo. No token to paste.";
+        }
+        /// contract.json#agent.install.manual
+        pub mod manual {
+            pub const LABEL: &str = "By hand";
+            /// contract.json#agent.install.manual.mcpServer
+            pub mod mcp_server {
+                pub const COMMAND: &str = "npx";
+                pub const ARGS: &[&str] = &["-y", "@usejot/mcp"];
+            }
+            pub const TOKEN_ENV: &str = "JOT_API_TOKEN";
+            pub const NOTE: &str = "Any MCP client: run `npx -y @usejot/mcp` with JOT_API_TOKEN set to an agent token from Settings → Agents.";
+        }
+        /// contract.json#agent.install.chat
+        pub mod chat {
+            pub const LABEL: &str = "claude.ai and ChatGPT";
+            pub const STATUS: &str = "soon";
+        }
+        pub const APPROVAL: &str = "Agents reply and resolve; who approves is your workspace's choice (by default, the person who reported it).";
+    }
 }
 
 /// contract.json#mcpTools, #mcpToolOutputs and #agent.tools, as JSON: what `jot mcp` serves.
@@ -419,6 +463,9 @@ pub mod mcp {
     pub const INPUT_SCHEMAS: &str = "{\"fetch_feedback\":{\"type\":\"object\",\"properties\":{\"projectId\":{\"type\":\"string\",\"description\":\"Optional. Leave it out: the token's own project, or every project of a workspace token. Never look one up\"},\"status\":{\"type\":\"string\",\"enum\":[\"OPEN\",\"IN_PROGRESS\",\"RESOLVED\",\"APPROVED\"],\"description\":\"Only return comments in this state\"},\"page\":{\"type\":\"string\",\"description\":\"Only comments made on this page — any URL on the page works\"},\"environment\":{\"type\":\"string\",\"description\":\"Only comments captured on this deployment, e.g. \\\"staging\\\"\"},\"source\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"TEAM\",\"INVITED\",\"PUBLIC\"]},\"minItems\":1,\"description\":\"Only comments from these reporters. Omitted: public feedback still tagged FEEDBACK is left out\"},\"q\":{\"type\":\"string\",\"maxLength\":200,\"description\":\"Text search over the comment and its replies\"},\"label\":{\"type\":\"string\",\"enum\":[\"BUG\",\"UI\",\"COPY\",\"CONTENT\",\"PERFORMANCE\",\"ACCESSIBILITY\",\"QUESTION\",\"ENHANCEMENT\",\"FEEDBACK\"],\"description\":\"Only comments with this label, e.g. BUG\"},\"limit\":{\"type\":\"integer\",\"minimum\":1,\"maximum\":100,\"description\":\"How many to return, 1–100 (default 25)\"},\"cursor\":{\"type\":\"string\",\"description\":\"The nextCursor of the previous page, to read on past it\"}},\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"get_comment\":{\"type\":\"object\",\"properties\":{\"commentId\":{\"type\":\"string\",\"minLength\":1,\"description\":\"The comment id (from fetch_feedback)\"},\"id\":{\"type\":\"string\",\"minLength\":1,\"description\":\"Same as commentId\"}},\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"update_status\":{\"type\":\"object\",\"properties\":{\"commentId\":{\"type\":\"string\",\"minLength\":1,\"description\":\"The comment id (from fetch_feedback)\"},\"id\":{\"type\":\"string\",\"minLength\":1,\"description\":\"Same as commentId\"},\"commentIds\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"minLength\":1},\"minItems\":1,\"maxItems\":50,\"description\":\"Several comments at once, instead of commentId\"},\"status\":{\"type\":\"string\",\"enum\":[\"IN_PROGRESS\",\"RESOLVED\"]}},\"required\":[\"status\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"post_reply\":{\"type\":\"object\",\"properties\":{\"commentId\":{\"type\":\"string\",\"minLength\":1,\"description\":\"The comment id (from fetch_feedback)\"},\"id\":{\"type\":\"string\",\"minLength\":1,\"description\":\"Same as commentId\"},\"message\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":5000,\"description\":\"The note to post\"},\"body\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":5000,\"description\":\"Same as message\"},\"content\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":5000,\"description\":\"Same as message\"}},\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"create_batch_note\":{\"type\":\"object\",\"properties\":{\"comment_ids\":{\"type\":\"array\",\"items\":{\"type\":\"string\"},\"minItems\":1,\"maxItems\":50},\"message\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":5000}},\"required\":[\"comment_ids\",\"message\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"list_projects\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}";
     pub const OUTPUT_SCHEMAS: &str = "{\"fetch_feedback\":{\"type\":\"object\",\"properties\":{\"comments\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"OPEN\",\"IN_PROGRESS\",\"RESOLVED\",\"APPROVED\"]},\"source\":{\"type\":\"string\",\"enum\":[\"TEAM\",\"INVITED\",\"PUBLIC\"]},\"labels\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"body\":{\"type\":\"string\"},\"where\":{\"type\":\"string\"},\"project\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"name\"],\"additionalProperties\":false}},\"required\":[\"id\",\"status\",\"source\",\"labels\",\"body\",\"where\"],\"additionalProperties\":false}},\"nextCursor\":{\"type\":[\"string\",\"null\"]}},\"required\":[\"comments\",\"nextCursor\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"update_status\":{\"type\":\"object\",\"properties\":{\"updated\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"OPEN\",\"IN_PROGRESS\",\"RESOLVED\",\"APPROVED\"]}},\"required\":[\"id\",\"status\"],\"additionalProperties\":false}}},\"required\":[\"updated\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"create_batch_note\":{\"type\":\"object\",\"properties\":{\"replyIds\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"replyIds\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"},\"list_projects\":{\"type\":\"object\",\"properties\":{\"org\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"name\"],\"additionalProperties\":false},\"scope\":{\"type\":\"string\",\"enum\":[\"project\",\"workspace\"]},\"projects\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"name\":{\"type\":\"string\"}},\"required\":[\"id\",\"name\"],\"additionalProperties\":false}},\"dashboardUrl\":{\"type\":\"string\",\"format\":\"uri\"}},\"required\":[\"org\",\"scope\",\"projects\",\"dashboardUrl\"],\"additionalProperties\":false,\"$schema\":\"http://json-schema.org/draft-07/schema#\"}}";
     pub const TOOLS: &str = "{\"fetch_feedback\":{\"title\":\"List feedback\",\"description\":\"List feedback comments. No projectId needed: with none, it lists everything the token reaches (each row names its project). Filter with status, q (text), label, page or environment. Returns up to `limit` (default 25); pass the returned nextCursor as `cursor` for more. Public visitor feedback is left out unless `source` asks for it.\",\"when\":\"Start here: to find open work, or to see what is left after a fix.\",\"example\":\"fetch_feedback { \\\"status\\\": \\\"OPEN\\\" }\",\"annotations\":{\"readOnlyHint\":true,\"openWorldHint\":true},\"mcpDescription\":\"List feedback comments. No projectId needed: with none, it lists everything the token reaches (each row names its project). Filter with status, q (text), label, page or environment. Returns up to `limit` (default 25); pass the returned nextCursor as `cursor` for more. Public visitor feedback is left out unless `source` asks for it.\\nWhen: Start here: to find open work, or to see what is left after a fix.\\nExample: fetch_feedback { \\\"status\\\": \\\"OPEN\\\" }\"},\"get_comment\":{\"title\":\"Read a Jot\",\"description\":\"Full detail for one comment (pass commentId): the page, element and browser, the thread, the recording summary, a dashboard link, and the screenshot as an image.\",\"when\":\"Before touching code for a comment: it is the full repro.\",\"example\":\"get_comment { \\\"commentId\\\": \\\"cm_123\\\" }\",\"annotations\":{\"readOnlyHint\":true,\"openWorldHint\":true},\"mcpDescription\":\"Full detail for one comment (pass commentId): the page, element and browser, the thread, the recording summary, a dashboard link, and the screenshot as an image.\\nWhen: Before touching code for a comment: it is the full repro.\\nExample: get_comment { \\\"commentId\\\": \\\"cm_123\\\" }\"},\"update_status\":{\"title\":\"Set status\",\"description\":\"Move a comment (commentId) or several (commentIds) to IN_PROGRESS, RESOLVED or APPROVED. Approval follows the workspace's policy (by default only the reporter approves); the API refuses if this token may not, so set RESOLVED unless the user asks you to approve.\",\"when\":\"IN_PROGRESS when you start; RESOLVED once the fix is in and tested, then reply.\",\"example\":\"update_status { \\\"commentId\\\": \\\"cm_123\\\", \\\"status\\\": \\\"RESOLVED\\\" }\",\"annotations\":{\"readOnlyHint\":false,\"destructiveHint\":false,\"idempotentHint\":true,\"openWorldHint\":true},\"mcpDescription\":\"Move a comment (commentId) or several (commentIds) to IN_PROGRESS, RESOLVED or APPROVED. Approval follows the workspace's policy (by default only the reporter approves); the API refuses if this token may not, so set RESOLVED unless the user asks you to approve.\\nWhen: IN_PROGRESS when you start; RESOLVED once the fix is in and tested, then reply.\\nExample: update_status { \\\"commentId\\\": \\\"cm_123\\\", \\\"status\\\": \\\"RESOLVED\\\" }\"},\"post_reply\":{\"title\":\"Reply in thread\",\"description\":\"Add a note (message) to a comment thread (commentId) so the reporter can see what happened, e.g. 'Fixed in PR #204'.\",\"when\":\"After every fix (what changed, how to check it), or to ask the reporter a question.\",\"example\":\"post_reply { \\\"commentId\\\": \\\"cm_123\\\", \\\"message\\\": \\\"Fixed in PR #204: … To check: open /checkout and press Pay.\\\" }\",\"annotations\":{\"readOnlyHint\":false,\"destructiveHint\":false,\"idempotentHint\":false,\"openWorldHint\":true},\"mcpDescription\":\"Add a note (message) to a comment thread (commentId) so the reporter can see what happened, e.g. 'Fixed in PR #204'.\\nWhen: After every fix (what changed, how to check it), or to ask the reporter a question.\\nExample: post_reply { \\\"commentId\\\": \\\"cm_123\\\", \\\"message\\\": \\\"Fixed in PR #204: … To check: open /checkout and press Pay.\\\" }\"},\"create_batch_note\":{\"title\":\"Post one note to several Jots\",\"description\":\"Report one action that spanned several comments (e.g. 'resolved 3 comments in PR #204') as a single note, linked across every thread it names. Atomic: one unknown id and nothing is posted.\",\"when\":\"One change fixed several comments: one note for all of them, not a reply each.\",\"example\":\"create_batch_note { \\\"comment_ids\\\": [\\\"cm_a\\\", \\\"cm_b\\\"], \\\"message\\\": \\\"Fixed both in PR #311: …\\\" }\",\"annotations\":{\"readOnlyHint\":false,\"destructiveHint\":false,\"idempotentHint\":false,\"openWorldHint\":true},\"mcpDescription\":\"Report one action that spanned several comments (e.g. 'resolved 3 comments in PR #204') as a single note, linked across every thread it names. Atomic: one unknown id and nothing is posted.\\nWhen: One change fixed several comments: one note for all of them, not a reply each.\\nExample: create_batch_note { \\\"comment_ids\\\": [\\\"cm_a\\\", \\\"cm_b\\\"], \\\"message\\\": \\\"Fixed both in PR #311: …\\\" }\"},\"list_projects\":{\"title\":\"What this token reaches\",\"description\":\"The workspace and projects this token can read and update. You rarely need it: fetch_feedback without a projectId already covers them all.\",\"when\":\"Only to see which workspace and projects this token reaches.\",\"example\":\"list_projects {}\",\"annotations\":{\"readOnlyHint\":true,\"openWorldHint\":true},\"mcpDescription\":\"The workspace and projects this token can read and update. You rarely need it: fetch_feedback without a projectId already covers them all.\\nWhen: Only to see which workspace and projects this token reaches.\\nExample: list_projects {}\"}}";
+    /// contract.json#cli.mcpSessionTools: `jot mcp`'s own tools, served after the shared six, in this order.
+    pub const SESSION_TOOL_NAMES: &[&str] = &["connect", "profiles", "use_profile"];
+    pub const SESSION_TOOLS: &str = "{\"connect\":{\"title\":\"Connect Jot\",\"description\":\"Sign in to Jot: opens the person's browser to pick a workspace, then saves it as a profile on this machine. Returns at once with the link; once they have picked, the next jot call uses the new profile. Pass profile to name it (e.g. work).\",\"when\":\"Not connected yet, or the person wants another account (work and personal, say).\",\"example\":\"connect { \\\"profile\\\": \\\"work\\\" }\",\"annotations\":{\"readOnlyHint\":false,\"destructiveHint\":false,\"idempotentHint\":false,\"openWorldHint\":true},\"inputSchema\":{\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"string\",\"minLength\":1,\"maxLength\":40,\"description\":\"Optional. Save it under this name; else the workspace's name\"}},\"additionalProperties\":false},\"mcpDescription\":\"Sign in to Jot: opens the person's browser to pick a workspace, then saves it as a profile on this machine. Returns at once with the link; once they have picked, the next jot call uses the new profile. Pass profile to name it (e.g. work).\\nWhen: Not connected yet, or the person wants another account (work and personal, say).\\nExample: connect { \\\"profile\\\": \\\"work\\\" }\"},\"profiles\":{\"title\":\"Jot profiles\",\"description\":\"The Jot accounts saved on this machine (work and personal, say): each one's workspace, email and API, which one this session uses and which is the default. Never a token.\",\"when\":\"The person has more than one account, or asks which one is in use.\",\"example\":\"profiles {}\",\"annotations\":{\"readOnlyHint\":true,\"openWorldHint\":false},\"inputSchema\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":false},\"mcpDescription\":\"The Jot accounts saved on this machine (work and personal, say): each one's workspace, email and API, which one this session uses and which is the default. Never a token.\\nWhen: The person has more than one account, or asks which one is in use.\\nExample: profiles {}\"},\"use_profile\":{\"title\":\"Switch Jot profile\",\"description\":\"Use another saved profile (name, from profiles) for the rest of this session, and say what it reaches. The default stays: `jot use <name>` in a terminal changes it.\",\"when\":\"The person wants another of their accounts for this session.\",\"example\":\"use_profile { \\\"name\\\": \\\"work\\\" }\",\"annotations\":{\"readOnlyHint\":false,\"destructiveHint\":false,\"idempotentHint\":true,\"openWorldHint\":true},\"inputSchema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"minLength\":1,\"description\":\"The profile, as profiles lists it\"}},\"required\":[\"name\"],\"additionalProperties\":false},\"mcpDescription\":\"Use another saved profile (name, from profiles) for the rest of this session, and say what it reaches. The default stays: `jot use <name>` in a terminal changes it.\\nWhen: The person wants another of their accounts for this session.\\nExample: use_profile { \\\"name\\\": \\\"work\\\" }\"}}";
 }
 
 /// A CLI flag. `value` is the placeholder it takes; None for a boolean flag.
@@ -461,6 +508,9 @@ pub mod cli {
         pub const MCP: &str = "@usejot/mcp";
         pub const BIN: &str = "jot";
         pub const MCP_BIN: &str = "jot-mcp";
+        pub const CLAUDE_PLUGIN: &str = "jot";
+        pub const CLAUDE_MARKETPLACE: &str = "usejot";
+        pub const CLAUDE_MARKETPLACE_REPO: &str = "usejot/claude-plugins";
     }
 
     /// contract.json#cli.env
@@ -489,6 +539,11 @@ pub mod cli {
         pub mod home {
             pub const NAME: &str = "JOT_HOME";
             pub const DEFAULT: &str = "~/.jot";
+        }
+        /// contract.json#cli.env.viaPlugin
+        pub mod via_plugin {
+            pub const NAME: &str = "JOT_VIA_PLUGIN";
+            pub const DEFAULT: Option<&str> = None;
         }
     }
 
@@ -568,6 +623,14 @@ pub mod cli {
     pub mod mcp_server_entry_local {
         pub const COMMAND: &str = "jot";
         pub const ARGS: &[&str] = &["mcp"];
+    }
+
+    /// contract.json#cli.claudeCode
+    pub mod claude_code {
+        pub const CONFIG_DIR_ENV: &str = "CLAUDE_CONFIG_DIR";
+        pub const CONFIG_DIR: &str = ".claude";
+        pub const USER_CONFIG: &str = ".claude.json";
+        pub const INSTALLED_PLUGINS: &str = "plugins/installed_plugins.json";
     }
 
     /// contract.json#cli.copy
@@ -705,6 +768,7 @@ RESOLVED means "please check", not "closed". Approval follows the workspace's po
             pub const INIT_ALL_PROJECTS: &str = "all projects";
             pub const INIT_BINDING_WRITTEN: &str = "✓ .jot.json: profile \"{profile}\", {project}. No secrets, safe to commit.";
             pub const INIT_MCP_WRITTEN: &str = "✓ .mcp.json: the jot server, no token inside.";
+            pub const INIT_MCP_PLUGIN_PROVIDES: &str = "✓ .mcp.json: left alone. The Jot plugin for Claude Code already runs the jot server.";
             pub const INIT_MCP_TOKEN_REMOVED: &str = "  (removed the old JOT_API_TOKEN from it; the profile carries the token now)";
             pub const INIT_COMMAND_KEPT: &str = "! .claude/commands/jot.md exists and differs; left it alone. `jot init --force` replaces it.";
             pub const INIT_COMMAND_WRITTEN: &str = "✓ .claude/commands/jot.md: the /jot command.";
@@ -742,6 +806,18 @@ Done. In Claude Code type /jot (restart it first if it was open, so the jot serv
             pub const LOOP_PROPOSED_REPLY: &str = r#"Proposed fix (not applied yet):
 
 {output}"#;
+            pub const MCP_NOT_CONNECTED: &str = "Not connected to Jot yet. Call the `connect` tool: it opens the person's browser to pick a workspace. Or they run `jot login` in a terminal.";
+            pub const MCP_CONNECT_OPENED: &str = r#"I opened the browser to connect Jot. Ask the person to pick the workspace there and tell you when it is done; the next jot call then uses it. If no browser opened, they can visit:
+{url}"#;
+            pub const MCP_CONNECT_FAILED: &str = "Connecting Jot did not finish: {message}";
+            pub const MCP_CONNECTED: &str = "Connected: profile \"{name}\". {reach}";
+            pub const MCP_PROFILES_EMPTY: &str = "No profiles saved on this machine yet. Call `connect` to sign in.";
+            pub const MCP_PROFILES_ROW: &str = "- {name}{marks}: {details}";
+            pub const MCP_PROFILE_IN_USE: &str = " (this session)";
+            pub const MCP_PROFILE_DEFAULT: &str = " (default)";
+            pub const MCP_PROFILES_HINT: &str = "use_profile switches this session; `jot use <name>` in a terminal changes the default.";
+            pub const MCP_USE_PROFILE_DONE: &str = "This session now uses profile \"{name}\". {reach} The default is unchanged: `jot use {name}` in a terminal makes it the default.";
+            pub const MCP_DUPLICATE_SERVER: &str = "Another `jot` server is configured in {file}; remove it so the plugin's is the only one.";
         }
     }
 

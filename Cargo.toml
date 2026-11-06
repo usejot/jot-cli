@@ -1,6 +1,6 @@
 [package]
 name = "jot-cli"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "jot: your Jot feedback, in the terminal and in your coding agent"
 license = "MIT"

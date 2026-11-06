@@ -16,6 +16,7 @@ use crate::{CliError, Result};
 /// ponytail: one fixed request timeout; a per-call knob when a slow endpoint needs one.
 const TIMEOUT: Duration = Duration::from_secs(30);
 
+#[derive(Clone)]
 pub struct Api {
     base: String,
     token: String,

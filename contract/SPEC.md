@@ -159,6 +159,9 @@ Every tool answers in readable text. `fetch_feedback`, `update_status`, `create_
 annotations: `fetch_feedback`, `get_comment` and `list_projects` are read-only; `update_status` is idempotent;
 none is destructive. A failed call comes back as a tool error (`isError`), never a crash.
 
+The `jot` CLI's server (`jot mcp`) serves three more, after these six: its session tools (§15).
+They are not in `MCP_TOOL_NAMES`, so the six above are the same on every Jot server.
+
 ## 6. Versioning
 
 - `@usejot/contract` has its own semver. A new optional key is a minor bump; anything a
@@ -179,6 +182,15 @@ none is destructive. A failed call comes back as a tool error (`isError`), never
   deprecated, unchanged.
 
 **Unreleased** — optional for every reader; a 0.6.0 SDK still conforms on the wire.
+
+- **`jot mcp` session tools** (`cli.mcpSessionTools`, §15): `connect`, `profiles` and
+  `use_profile`, served by the CLI's server only, after the six shared tools. `MCP_TOOL_NAMES`,
+  `mcpTools` and `@usejot/mcp` are unchanged. With them: `cli.env.viaPlugin`, `cli.claudeCode`,
+  the `mcp*` and `initMcpPluginProvides` lines in `cli.copy.messages`, and a playbook section on
+  several accounts.
+
+- **`agent.install`** and the plugin names in **`cli.packages`** (§16): the setup paths every
+  surface shows, written once.
 
 - **MCP structured output** (`McpToolOutputSchemas`, `contract.json#mcpToolOutputs`): stable
   fields next to the text for `fetch_feedback`, `update_status`, `create_batch_note` and
@@ -578,7 +590,7 @@ use `{name}` placeholders, replaced verbatim.
 
 - **Env** (`cli.env`): `JOT_PROFILE`, `JOT_API_TOKEN`, `BACKEND_API_URL` (default
   `https://api.usejot.co`), `JOT_APP_URL` (default `https://app.usejot.co`), `JOT_HOME` (default
-  `~/.jot`).
+  `~/.jot`), `JOT_VIA_PLUGIN` (`"1"` in the Claude Code plugin's server entry).
 - **Files** (`cli.paths`): `<home>/config.json` (`CliConfig`, mode 0600 in a 0700 directory: it
   holds tokens), `<home>/state/<profile>.json` (`WatchState`, the profile slugified), and in a
   repo `.jot.json` (`RepoBinding`: a profile name and a project id, never a token, safe to commit),
@@ -612,6 +624,22 @@ use `{name}` placeholders, replaced verbatim.
   then shown. The seen list keeps the newest 2000 ids. **`jot loop --agent claude`**
   (`cli.loop`) runs `claude -p <cli.copy.headlessPrompt> --permission-mode plan|acceptEdits` per
   new comment; the CLI sets the statuses and posts the answer itself.
+- **`jot mcp` session tools** (`cli.mcpSessionTools`: title, description, `when`, `example`,
+  annotations, `inputSchema`, and `mcpDescription` composed as `agent.tools`'): `connect
+  {profile?}` starts the `jot login` handshake in the background and answers at once with the
+  link (`mcpConnectOpened`); the profile it saves is the one the next call uses (`mcpConnected`).
+  `profiles` lists the saved profiles (name, workspace, email, API; which one this session uses
+  and which is the default), never a token. `use_profile {name}` switches this session only, as
+  `--profile` would, and answers with the new reach (`mcpUseProfileDone`); `jot use` still sets
+  the default. Not signed in, a tool answers `mcpNotConnected`, and the server resolves the
+  profile again on each call until one is found, so a sign-in finished anywhere needs no restart.
+- **Claude Code** (`cli.claudeCode`), read, never written: the plugin is installed when
+  `<configDir>/plugins/installed_plugins.json` (`$CLAUDE_CONFIG_DIR` when set) has the key
+  `jot@usejot` under `plugins`. Then `jot init` leaves `.mcp.json` alone
+  (`initMcpPluginProvides`). A server started with `JOT_VIA_PLUGIN=1`, and `jot mcp doctor` when
+  the plugin is installed, look for another `jot` entry in `.claude.json` (top-level
+  `mcpServers`, or `projects[<cwd>].mcpServers`) and the working directory's `.mcp.json`, and say
+  `mcpDuplicateServer` naming the file: in the instructions and on stderr, or in doctor's output.
 - **Agent API** (`cli.api`): the endpoints under `/api/v1` both clients call with
   `authorization: Bearer <agent token>`, and their shapes in `cli.schemas`.
 
@@ -641,5 +669,9 @@ surface an agent reads.
   `doctor` lines. `get_comment` adds the markdown's first `![Screenshot](url)` as an image
   content item when it is an image of at most `screenshotMaxBytes`, fetched within
   `screenshotTimeoutMs`. `update_status` accepts `constants.agentRequestableStatuses` (the API
-  applies the workspace's approval policy). Both `@usejot/mcp` and `jot mcp` serve the same
-  `tools/list`.
+  applies the workspace's approval policy). Both `@usejot/mcp` and `jot mcp` serve the same six
+  tools; `jot mcp` appends its session tools (§15).
+- **`agent.install`**: how a person connects an agent, for every surface that shows it:
+  `claudeCode` (two commands: `/plugin marketplace add <claudeMarketplaceRepo>`, then
+  `/plugin install <claudePlugin>@<claudeMarketplace>`), `cli` (`login` then `init`), `manual` (the `npx` MCP entry and its
+  token variable), `chat` (announced, `status: "soon"`), and the `approval` sentence.

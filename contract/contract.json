@@ -7467,7 +7467,7 @@
     }
   },
   "agent": {
-    "playbook": "# Working a Jot queue\n\nJot holds feedback people left on a live app. Each comment is pinned to the exact element, with a screenshot, the page URL and selector (or the app screen), the browser and OS, and sometimes a session recording with its console errors and failed requests. Use the jot tools (or the `jot` CLI), never curl or the REST API: they already carry the token, the ids and the screenshot.\n\n## The loop\n\n1. **Fetch.** `fetch_feedback` with status OPEN lists the open work. No projectId is needed unless this repo is bound to one.\n2. **Read the full repro.** `get_comment` for one comment: the reporter's sentence, where it was left, the thread, the recording summary and the screenshot.\n3. **Reproduce.** Find the element from the selector (or the screen) in this codebase and the route from the URL. Read the console errors and failed requests before guessing.\n4. **Mark it.** `update_status` IN_PROGRESS when you start, so nobody else picks it up.\n5. **Fix and test.** Make the smallest change that fixes what was reported, run the project's tests, and add one when the bug could come back.\n6. **Close the loop.** `update_status` RESOLVED, then `post_reply` saying what changed. Never resolve without a reply.\n\n## What a good reply says\n\n- What was wrong, in one sentence the reporter understands.\n- What changed: the files, and the PR or commit.\n- How to check it: the page, the steps, and the browser when it mattered.\n\nFor example: \"The Pay button sat under the cookie banner on Safari, so clicks never reached it. Fixed the banner's stacking in src/components/CookieBanner.tsx (PR #204). To check: open /checkout in Safari and press Pay.\"\n\n## Ask instead of fixing when\n\n- the report is unclear, or you cannot find what it points at;\n- it is a design or product decision (copy, layout, pricing, scope) rather than a bug;\n- the fix belongs to another repo or project, or is far bigger than the report.\n\nAsk in the thread with `post_reply`, leave the status as it is, and tell the user.\n\n## Using the evidence\n\n- **Selector** (`domSelector`): search the code for its ids, classes and test ids; the closest component that renders it is where to start. A comment from a native app names the screen and the element instead.\n- **Screenshot:** what the reporter saw, with their marks on it. Compare it with what the code means to render.\n- **Console errors and failed requests** (the recording summary): the first error, or the first 4xx/5xx, is usually the cause. Match a request's path to its handler.\n- **Browser, OS and viewport:** reproduce in the same conditions. Many reports happen in one browser or at one width only.\n\n## Never\n\n- Never say a fix is approved. RESOLVED means \"please check\", not \"closed\". Approval follows the workspace's policy (by default only the reporter approves): set APPROVED only when the user asks, and say it is approved only when the API accepted it.\n- Never resolve a comment without a reply that says what changed.\n- Never work on comments outside the project this repo is bound to, unless the user asks.\n- Never paste the token anywhere, or call the API by hand.\n\n## Several at once\n\nWhen one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.\n",
+    "playbook": "# Working a Jot queue\n\nJot holds feedback people left on a live app. Each comment is pinned to the exact element, with a screenshot, the page URL and selector (or the app screen), the browser and OS, and sometimes a session recording with its console errors and failed requests. Use the jot tools (or the `jot` CLI), never curl or the REST API: they already carry the token, the ids and the screenshot.\n\n## The loop\n\n1. **Fetch.** `fetch_feedback` with status OPEN lists the open work. No projectId is needed unless this repo is bound to one.\n2. **Read the full repro.** `get_comment` for one comment: the reporter's sentence, where it was left, the thread, the recording summary and the screenshot.\n3. **Reproduce.** Find the element from the selector (or the screen) in this codebase and the route from the URL. Read the console errors and failed requests before guessing.\n4. **Mark it.** `update_status` IN_PROGRESS when you start, so nobody else picks it up.\n5. **Fix and test.** Make the smallest change that fixes what was reported, run the project's tests, and add one when the bug could come back.\n6. **Close the loop.** `update_status` RESOLVED, then `post_reply` saying what changed. Never resolve without a reply.\n\n## What a good reply says\n\n- What was wrong, in one sentence the reporter understands.\n- What changed: the files, and the PR or commit.\n- How to check it: the page, the steps, and the browser when it mattered.\n\nFor example: \"The Pay button sat under the cookie banner on Safari, so clicks never reached it. Fixed the banner's stacking in src/components/CookieBanner.tsx (PR #204). To check: open /checkout in Safari and press Pay.\"\n\n## Ask instead of fixing when\n\n- the report is unclear, or you cannot find what it points at;\n- it is a design or product decision (copy, layout, pricing, scope) rather than a bug;\n- the fix belongs to another repo or project, or is far bigger than the report.\n\nAsk in the thread with `post_reply`, leave the status as it is, and tell the user.\n\n## Using the evidence\n\n- **Selector** (`domSelector`): search the code for its ids, classes and test ids; the closest component that renders it is where to start. A comment from a native app names the screen and the element instead.\n- **Screenshot:** what the reporter saw, with their marks on it. Compare it with what the code means to render.\n- **Console errors and failed requests** (the recording summary): the first error, or the first 4xx/5xx, is usually the cause. Match a request's path to its handler.\n- **Browser, OS and viewport:** reproduce in the same conditions. Many reports happen in one browser or at one width only.\n\n## Never\n\n- Never say a fix is approved. RESOLVED means \"please check\", not \"closed\". Approval follows the workspace's policy (by default only the reporter approves): set APPROVED only when the user asks, and say it is approved only when the API accepted it.\n- Never resolve a comment without a reply that says what changed.\n- Never work on comments outside the project this repo is bound to, unless the user asks.\n- Never paste the token anywhere, or call the API by hand.\n\n## Several at once\n\nWhen one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.\n\n## Several accounts\n\nWork and personal Jot accounts are profiles: with the `jot` CLI's server, `profiles` lists the ones on this machine, `use_profile` switches this session to another, and `connect` signs in to one more.\n",
     "examples": [
       {
         "title": "A button that does nothing",
@@ -7649,7 +7649,7 @@
     "skill": {
       "name": "jot",
       "description": "Work through Jot feedback: bug reports and change requests that people pinned to elements of the live app, with screenshots and recordings. Use when the user mentions Jot, feedback, a bug report, a pin or a comment id, or asks what is open, to fix reported issues, or to reply to reviewers.",
-      "file": "---\nname: jot\ndescription: Work through Jot feedback: bug reports and change requests that people pinned to elements of the live app, with screenshots and recordings. Use when the user mentions Jot, feedback, a bug report, a pin or a comment id, or asks what is open, to fix reported issues, or to reply to reviewers.\n---\n\n# Working a Jot queue\n\nJot holds feedback people left on a live app. Each comment is pinned to the exact element, with a screenshot, the page URL and selector (or the app screen), the browser and OS, and sometimes a session recording with its console errors and failed requests. Use the jot tools (or the `jot` CLI), never curl or the REST API: they already carry the token, the ids and the screenshot.\n\n## The loop\n\n1. **Fetch.** `fetch_feedback` with status OPEN lists the open work. No projectId is needed unless this repo is bound to one.\n2. **Read the full repro.** `get_comment` for one comment: the reporter's sentence, where it was left, the thread, the recording summary and the screenshot.\n3. **Reproduce.** Find the element from the selector (or the screen) in this codebase and the route from the URL. Read the console errors and failed requests before guessing.\n4. **Mark it.** `update_status` IN_PROGRESS when you start, so nobody else picks it up.\n5. **Fix and test.** Make the smallest change that fixes what was reported, run the project's tests, and add one when the bug could come back.\n6. **Close the loop.** `update_status` RESOLVED, then `post_reply` saying what changed. Never resolve without a reply.\n\n## What a good reply says\n\n- What was wrong, in one sentence the reporter understands.\n- What changed: the files, and the PR or commit.\n- How to check it: the page, the steps, and the browser when it mattered.\n\nFor example: \"The Pay button sat under the cookie banner on Safari, so clicks never reached it. Fixed the banner's stacking in src/components/CookieBanner.tsx (PR #204). To check: open /checkout in Safari and press Pay.\"\n\n## Ask instead of fixing when\n\n- the report is unclear, or you cannot find what it points at;\n- it is a design or product decision (copy, layout, pricing, scope) rather than a bug;\n- the fix belongs to another repo or project, or is far bigger than the report.\n\nAsk in the thread with `post_reply`, leave the status as it is, and tell the user.\n\n## Using the evidence\n\n- **Selector** (`domSelector`): search the code for its ids, classes and test ids; the closest component that renders it is where to start. A comment from a native app names the screen and the element instead.\n- **Screenshot:** what the reporter saw, with their marks on it. Compare it with what the code means to render.\n- **Console errors and failed requests** (the recording summary): the first error, or the first 4xx/5xx, is usually the cause. Match a request's path to its handler.\n- **Browser, OS and viewport:** reproduce in the same conditions. Many reports happen in one browser or at one width only.\n\n## Never\n\n- Never say a fix is approved. RESOLVED means \"please check\", not \"closed\". Approval follows the workspace's policy (by default only the reporter approves): set APPROVED only when the user asks, and say it is approved only when the API accepted it.\n- Never resolve a comment without a reply that says what changed.\n- Never work on comments outside the project this repo is bound to, unless the user asks.\n- Never paste the token anywhere, or call the API by hand.\n\n## Several at once\n\nWhen one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.\n\n## Examples\n\n### 1. A button that does nothing\n\nThe report: \"Pay button does nothing on Safari\" · https://shop.your-app.example/checkout · button#pay · Safari 18 / macOS · recording: 12s, 1 console error (TypeError: Cannot read properties of undefined (reading 'total') at checkout.ts:88)\n\n```text\nget_comment {\"commentId\":\"cm_pay\"}\nupdate_status {\"commentId\":\"cm_pay\",\"status\":\"IN_PROGRESS\"}\nupdate_status {\"commentId\":\"cm_pay\",\"status\":\"RESOLVED\"}\npost_reply {\"commentId\":\"cm_pay\",\"message\":\"Pay read the cart total before the cart had loaded, so it threw on Safari and did nothing. It now waits for the cart (src/checkout/checkout.ts, PR #204), with a test. To check: open /checkout in Safari and press Pay.\"}\n```\n\nThe reply:\n\n> Pay read the cart total before the cart had loaded, so it threw on Safari and did nothing. It now waits for the cart (src/checkout/checkout.ts, PR #204), with a test. To check: open /checkout in Safari and press Pay.\n\n### 2. One fix for several comments\n\nThe report: Three COPY comments: \"Sign Up should be Sign up\" on /, /pricing and /signup, each pinned to the header button a.signup\n\n```text\nfetch_feedback {\"status\":\"OPEN\",\"label\":\"COPY\"}\nupdate_status {\"commentIds\":[\"cm_a\",\"cm_b\",\"cm_c\"],\"status\":\"IN_PROGRESS\"}\nupdate_status {\"commentIds\":[\"cm_a\",\"cm_b\",\"cm_c\"],\"status\":\"RESOLVED\"}\ncreate_batch_note {\"comment_ids\":[\"cm_a\",\"cm_b\",\"cm_c\"],\"message\":\"The header button now says \\\"Sign up\\\" everywhere: one label in src/components/Header.tsx (PR #311). To check: the header on /, /pricing and /signup.\"}\n```\n\nThe reply:\n\n> The header button now says \"Sign up\" everywhere: one label in src/components/Header.tsx (PR #311). To check: the header on /, /pricing and /signup.\n\n### 3. A request to ask about, not fix\n\nThe report: \"Make the hero more exciting\" · https://your-app.example/ · section.hero · label ENHANCEMENT\n\n```text\nget_comment {\"commentId\":\"cm_hero\"}\npost_reply {\"commentId\":\"cm_hero\",\"message\":\"Happy to change it. What should change: the headline, the image, or adding motion? A link to a hero you like would help.\"}\n```\n\nThe reply:\n\n> Happy to change it. What should change: the headline, the image, or adding motion? A link to a hero you like would help.\n"
+      "file": "---\nname: jot\ndescription: Work through Jot feedback: bug reports and change requests that people pinned to elements of the live app, with screenshots and recordings. Use when the user mentions Jot, feedback, a bug report, a pin or a comment id, or asks what is open, to fix reported issues, or to reply to reviewers.\n---\n\n# Working a Jot queue\n\nJot holds feedback people left on a live app. Each comment is pinned to the exact element, with a screenshot, the page URL and selector (or the app screen), the browser and OS, and sometimes a session recording with its console errors and failed requests. Use the jot tools (or the `jot` CLI), never curl or the REST API: they already carry the token, the ids and the screenshot.\n\n## The loop\n\n1. **Fetch.** `fetch_feedback` with status OPEN lists the open work. No projectId is needed unless this repo is bound to one.\n2. **Read the full repro.** `get_comment` for one comment: the reporter's sentence, where it was left, the thread, the recording summary and the screenshot.\n3. **Reproduce.** Find the element from the selector (or the screen) in this codebase and the route from the URL. Read the console errors and failed requests before guessing.\n4. **Mark it.** `update_status` IN_PROGRESS when you start, so nobody else picks it up.\n5. **Fix and test.** Make the smallest change that fixes what was reported, run the project's tests, and add one when the bug could come back.\n6. **Close the loop.** `update_status` RESOLVED, then `post_reply` saying what changed. Never resolve without a reply.\n\n## What a good reply says\n\n- What was wrong, in one sentence the reporter understands.\n- What changed: the files, and the PR or commit.\n- How to check it: the page, the steps, and the browser when it mattered.\n\nFor example: \"The Pay button sat under the cookie banner on Safari, so clicks never reached it. Fixed the banner's stacking in src/components/CookieBanner.tsx (PR #204). To check: open /checkout in Safari and press Pay.\"\n\n## Ask instead of fixing when\n\n- the report is unclear, or you cannot find what it points at;\n- it is a design or product decision (copy, layout, pricing, scope) rather than a bug;\n- the fix belongs to another repo or project, or is far bigger than the report.\n\nAsk in the thread with `post_reply`, leave the status as it is, and tell the user.\n\n## Using the evidence\n\n- **Selector** (`domSelector`): search the code for its ids, classes and test ids; the closest component that renders it is where to start. A comment from a native app names the screen and the element instead.\n- **Screenshot:** what the reporter saw, with their marks on it. Compare it with what the code means to render.\n- **Console errors and failed requests** (the recording summary): the first error, or the first 4xx/5xx, is usually the cause. Match a request's path to its handler.\n- **Browser, OS and viewport:** reproduce in the same conditions. Many reports happen in one browser or at one width only.\n\n## Never\n\n- Never say a fix is approved. RESOLVED means \"please check\", not \"closed\". Approval follows the workspace's policy (by default only the reporter approves): set APPROVED only when the user asks, and say it is approved only when the API accepted it.\n- Never resolve a comment without a reply that says what changed.\n- Never work on comments outside the project this repo is bound to, unless the user asks.\n- Never paste the token anywhere, or call the API by hand.\n\n## Several at once\n\nWhen one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.\n\n## Several accounts\n\nWork and personal Jot accounts are profiles: with the `jot` CLI's server, `profiles` lists the ones on this machine, `use_profile` switches this session to another, and `connect` signs in to one more.\n\n## Examples\n\n### 1. A button that does nothing\n\nThe report: \"Pay button does nothing on Safari\" · https://shop.your-app.example/checkout · button#pay · Safari 18 / macOS · recording: 12s, 1 console error (TypeError: Cannot read properties of undefined (reading 'total') at checkout.ts:88)\n\n```text\nget_comment {\"commentId\":\"cm_pay\"}\nupdate_status {\"commentId\":\"cm_pay\",\"status\":\"IN_PROGRESS\"}\nupdate_status {\"commentId\":\"cm_pay\",\"status\":\"RESOLVED\"}\npost_reply {\"commentId\":\"cm_pay\",\"message\":\"Pay read the cart total before the cart had loaded, so it threw on Safari and did nothing. It now waits for the cart (src/checkout/checkout.ts, PR #204), with a test. To check: open /checkout in Safari and press Pay.\"}\n```\n\nThe reply:\n\n> Pay read the cart total before the cart had loaded, so it threw on Safari and did nothing. It now waits for the cart (src/checkout/checkout.ts, PR #204), with a test. To check: open /checkout in Safari and press Pay.\n\n### 2. One fix for several comments\n\nThe report: Three COPY comments: \"Sign Up should be Sign up\" on /, /pricing and /signup, each pinned to the header button a.signup\n\n```text\nfetch_feedback {\"status\":\"OPEN\",\"label\":\"COPY\"}\nupdate_status {\"commentIds\":[\"cm_a\",\"cm_b\",\"cm_c\"],\"status\":\"IN_PROGRESS\"}\nupdate_status {\"commentIds\":[\"cm_a\",\"cm_b\",\"cm_c\"],\"status\":\"RESOLVED\"}\ncreate_batch_note {\"comment_ids\":[\"cm_a\",\"cm_b\",\"cm_c\"],\"message\":\"The header button now says \\\"Sign up\\\" everywhere: one label in src/components/Header.tsx (PR #311). To check: the header on /, /pricing and /signup.\"}\n```\n\nThe reply:\n\n> The header button now says \"Sign up\" everywhere: one label in src/components/Header.tsx (PR #311). To check: the header on /, /pricing and /signup.\n\n### 3. A request to ask about, not fix\n\nThe report: \"Make the hero more exciting\" · https://your-app.example/ · section.hero · label ENHANCEMENT\n\n```text\nget_comment {\"commentId\":\"cm_hero\"}\npost_reply {\"commentId\":\"cm_hero\",\"message\":\"Happy to change it. What should change: the headline, the image, or adding motion? A link to a hero you like would help.\"}\n```\n\nThe reply:\n\n> Happy to change it. What should change: the headline, the image, or adding motion? A link to a hero you like would help.\n"
     },
     "errors": {
       "notConnected": "Not connected to Jot yet. Run `jot login` (or `npx @usejot/cli login`), or set JOT_API_TOKEN to an agent token from Jot → Settings → Agents.",
@@ -7666,7 +7666,7 @@
     "agentsMd": {
       "start": "<!-- jot -->",
       "end": "<!-- /jot -->",
-      "body": "# Working a Jot queue\n\nJot holds feedback people left on a live app. Each comment is pinned to the exact element, with a screenshot, the page URL and selector (or the app screen), the browser and OS, and sometimes a session recording with its console errors and failed requests. Use the jot tools (or the `jot` CLI), never curl or the REST API: they already carry the token, the ids and the screenshot.\n\n## The loop\n\n1. **Fetch.** `fetch_feedback` with status OPEN lists the open work. No projectId is needed unless this repo is bound to one.\n2. **Read the full repro.** `get_comment` for one comment: the reporter's sentence, where it was left, the thread, the recording summary and the screenshot.\n3. **Reproduce.** Find the element from the selector (or the screen) in this codebase and the route from the URL. Read the console errors and failed requests before guessing.\n4. **Mark it.** `update_status` IN_PROGRESS when you start, so nobody else picks it up.\n5. **Fix and test.** Make the smallest change that fixes what was reported, run the project's tests, and add one when the bug could come back.\n6. **Close the loop.** `update_status` RESOLVED, then `post_reply` saying what changed. Never resolve without a reply.\n\n## What a good reply says\n\n- What was wrong, in one sentence the reporter understands.\n- What changed: the files, and the PR or commit.\n- How to check it: the page, the steps, and the browser when it mattered.\n\nFor example: \"The Pay button sat under the cookie banner on Safari, so clicks never reached it. Fixed the banner's stacking in src/components/CookieBanner.tsx (PR #204). To check: open /checkout in Safari and press Pay.\"\n\n## Ask instead of fixing when\n\n- the report is unclear, or you cannot find what it points at;\n- it is a design or product decision (copy, layout, pricing, scope) rather than a bug;\n- the fix belongs to another repo or project, or is far bigger than the report.\n\nAsk in the thread with `post_reply`, leave the status as it is, and tell the user.\n\n## Using the evidence\n\n- **Selector** (`domSelector`): search the code for its ids, classes and test ids; the closest component that renders it is where to start. A comment from a native app names the screen and the element instead.\n- **Screenshot:** what the reporter saw, with their marks on it. Compare it with what the code means to render.\n- **Console errors and failed requests** (the recording summary): the first error, or the first 4xx/5xx, is usually the cause. Match a request's path to its handler.\n- **Browser, OS and viewport:** reproduce in the same conditions. Many reports happen in one browser or at one width only.\n\n## Never\n\n- Never say a fix is approved. RESOLVED means \"please check\", not \"closed\". Approval follows the workspace's policy (by default only the reporter approves): set APPROVED only when the user asks, and say it is approved only when the API accepted it.\n- Never resolve a comment without a reply that says what changed.\n- Never work on comments outside the project this repo is bound to, unless the user asks.\n- Never paste the token anywhere, or call the API by hand.\n\n## Several at once\n\nWhen one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.\n"
+      "body": "# Working a Jot queue\n\nJot holds feedback people left on a live app. Each comment is pinned to the exact element, with a screenshot, the page URL and selector (or the app screen), the browser and OS, and sometimes a session recording with its console errors and failed requests. Use the jot tools (or the `jot` CLI), never curl or the REST API: they already carry the token, the ids and the screenshot.\n\n## The loop\n\n1. **Fetch.** `fetch_feedback` with status OPEN lists the open work. No projectId is needed unless this repo is bound to one.\n2. **Read the full repro.** `get_comment` for one comment: the reporter's sentence, where it was left, the thread, the recording summary and the screenshot.\n3. **Reproduce.** Find the element from the selector (or the screen) in this codebase and the route from the URL. Read the console errors and failed requests before guessing.\n4. **Mark it.** `update_status` IN_PROGRESS when you start, so nobody else picks it up.\n5. **Fix and test.** Make the smallest change that fixes what was reported, run the project's tests, and add one when the bug could come back.\n6. **Close the loop.** `update_status` RESOLVED, then `post_reply` saying what changed. Never resolve without a reply.\n\n## What a good reply says\n\n- What was wrong, in one sentence the reporter understands.\n- What changed: the files, and the PR or commit.\n- How to check it: the page, the steps, and the browser when it mattered.\n\nFor example: \"The Pay button sat under the cookie banner on Safari, so clicks never reached it. Fixed the banner's stacking in src/components/CookieBanner.tsx (PR #204). To check: open /checkout in Safari and press Pay.\"\n\n## Ask instead of fixing when\n\n- the report is unclear, or you cannot find what it points at;\n- it is a design or product decision (copy, layout, pricing, scope) rather than a bug;\n- the fix belongs to another repo or project, or is far bigger than the report.\n\nAsk in the thread with `post_reply`, leave the status as it is, and tell the user.\n\n## Using the evidence\n\n- **Selector** (`domSelector`): search the code for its ids, classes and test ids; the closest component that renders it is where to start. A comment from a native app names the screen and the element instead.\n- **Screenshot:** what the reporter saw, with their marks on it. Compare it with what the code means to render.\n- **Console errors and failed requests** (the recording summary): the first error, or the first 4xx/5xx, is usually the cause. Match a request's path to its handler.\n- **Browser, OS and viewport:** reproduce in the same conditions. Many reports happen in one browser or at one width only.\n\n## Never\n\n- Never say a fix is approved. RESOLVED means \"please check\", not \"closed\". Approval follows the workspace's policy (by default only the reporter approves): set APPROVED only when the user asks, and say it is approved only when the API accepted it.\n- Never resolve a comment without a reply that says what changed.\n- Never work on comments outside the project this repo is bound to, unless the user asks.\n- Never paste the token anywhere, or call the API by hand.\n\n## Several at once\n\nWhen one change fixes several comments, move them together with one `update_status` (`commentIds`) and post one `create_batch_note` (`comment_ids`, `message`) instead of a reply in every thread.\n\n## Several accounts\n\nWork and personal Jot accounts are profiles: with the `jot` CLI's server, `profiles` lists the ones on this machine, `use_profile` switches this session to another, and `connect` signs in to one more.\n"
     },
     "mcp": {
       "serverName": "jot",
@@ -7691,6 +7691,41 @@
       "doctorTokenPlaceholder": "<your token>",
       "screenshotMaxBytes": 1500000,
       "screenshotTimeoutMs": 8000
+    },
+    "install": {
+      "claudeCode": {
+        "label": "Claude Code",
+        "commands": [
+          "/plugin marketplace add usejot/claude-plugins",
+          "/plugin install jot@usejot"
+        ],
+        "note": "Then ask Claude to connect Jot (it opens your browser), or paste an agent token when Claude Code asks."
+      },
+      "cli": {
+        "label": "Cursor, Codex, Windsurf, any agent",
+        "commands": [
+          "npx @usejot/cli login",
+          "npx @usejot/cli init"
+        ],
+        "note": "`login` opens your browser to pick a workspace. `init` connects the repo. No token to paste."
+      },
+      "manual": {
+        "label": "By hand",
+        "mcpServer": {
+          "command": "npx",
+          "args": [
+            "-y",
+            "@usejot/mcp"
+          ]
+        },
+        "tokenEnv": "JOT_API_TOKEN",
+        "note": "Any MCP client: run `npx -y @usejot/mcp` with JOT_API_TOKEN set to an agent token from Settings → Agents."
+      },
+      "chat": {
+        "label": "claude.ai and ChatGPT",
+        "status": "soon"
+      },
+      "approval": "Agents reply and resolve; who approves is your workspace's choice (by default, the person who reported it)."
     }
   },
   "cli": {
@@ -7698,7 +7733,10 @@
       "cli": "@usejot/cli",
       "mcp": "@usejot/mcp",
       "bin": "jot",
-      "mcpBin": "jot-mcp"
+      "mcpBin": "jot-mcp",
+      "claudePlugin": "jot",
+      "claudeMarketplace": "usejot",
+      "claudeMarketplaceRepo": "usejot/claude-plugins"
     },
     "env": {
       "profile": {
@@ -7720,6 +7758,10 @@
       "home": {
         "name": "JOT_HOME",
         "default": "~/.jot"
+      },
+      "viaPlugin": {
+        "name": "JOT_VIA_PLUGIN",
+        "default": null
       }
     },
     "paths": {
@@ -7811,6 +7853,82 @@
       "args": [
         "mcp"
       ]
+    },
+    "claudeCode": {
+      "configDirEnv": "CLAUDE_CONFIG_DIR",
+      "configDir": ".claude",
+      "userConfig": ".claude.json",
+      "installedPlugins": "plugins/installed_plugins.json"
+    },
+    "mcpSessionTools": {
+      "connect": {
+        "title": "Connect Jot",
+        "description": "Sign in to Jot: opens the person's browser to pick a workspace, then saves it as a profile on this machine. Returns at once with the link; once they have picked, the next jot call uses the new profile. Pass profile to name it (e.g. work).",
+        "when": "Not connected yet, or the person wants another account (work and personal, say).",
+        "example": "connect { \"profile\": \"work\" }",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40,
+              "description": "Optional. Save it under this name; else the workspace's name"
+            }
+          },
+          "additionalProperties": false
+        },
+        "mcpDescription": "Sign in to Jot: opens the person's browser to pick a workspace, then saves it as a profile on this machine. Returns at once with the link; once they have picked, the next jot call uses the new profile. Pass profile to name it (e.g. work).\nWhen: Not connected yet, or the person wants another account (work and personal, say).\nExample: connect { \"profile\": \"work\" }"
+      },
+      "profiles": {
+        "title": "Jot profiles",
+        "description": "The Jot accounts saved on this machine (work and personal, say): each one's workspace, email and API, which one this session uses and which is the default. Never a token.",
+        "when": "The person has more than one account, or asks which one is in use.",
+        "example": "profiles {}",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "mcpDescription": "The Jot accounts saved on this machine (work and personal, say): each one's workspace, email and API, which one this session uses and which is the default. Never a token.\nWhen: The person has more than one account, or asks which one is in use.\nExample: profiles {}"
+      },
+      "use_profile": {
+        "title": "Switch Jot profile",
+        "description": "Use another saved profile (name, from profiles) for the rest of this session, and say what it reaches. The default stays: `jot use <name>` in a terminal changes it.",
+        "when": "The person wants another of their accounts for this session.",
+        "example": "use_profile { \"name\": \"work\" }",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The profile, as profiles lists it"
+            }
+          },
+          "required": [
+            "name"
+          ],
+          "additionalProperties": false
+        },
+        "mcpDescription": "Use another saved profile (name, from profiles) for the rest of this session, and say what it reaches. The default stays: `jot use <name>` in a terminal changes it.\nWhen: The person wants another of their accounts for this session.\nExample: use_profile { \"name\": \"work\" }"
+      }
     },
     "globalFlags": [
       {
@@ -8213,6 +8331,7 @@
         "initAllProjects": "all projects",
         "initBindingWritten": "✓ .jot.json: profile \"{profile}\", {project}. No secrets, safe to commit.",
         "initMcpWritten": "✓ .mcp.json: the jot server, no token inside.",
+        "initMcpPluginProvides": "✓ .mcp.json: left alone. The Jot plugin for Claude Code already runs the jot server.",
         "initMcpTokenRemoved": "  (removed the old JOT_API_TOKEN from it; the profile carries the token now)",
         "initCommandKept": "! .claude/commands/jot.md exists and differs; left it alone. `jot init --force` replaces it.",
         "initCommandWritten": "✓ .claude/commands/jot.md: the /jot command.",
@@ -8242,7 +8361,18 @@
         "loopFailed": "✗ {id}  Claude exited {code}; left IN_PROGRESS.",
         "loopResolved": "✓ {id}  resolved: {summary}",
         "loopProposed": "• {id}  plan posted: {summary}",
-        "loopProposedReply": "Proposed fix (not applied yet):\n\n{output}"
+        "loopProposedReply": "Proposed fix (not applied yet):\n\n{output}",
+        "mcpNotConnected": "Not connected to Jot yet. Call the `connect` tool: it opens the person's browser to pick a workspace. Or they run `jot login` in a terminal.",
+        "mcpConnectOpened": "I opened the browser to connect Jot. Ask the person to pick the workspace there and tell you when it is done; the next jot call then uses it. If no browser opened, they can visit:\n{url}",
+        "mcpConnectFailed": "Connecting Jot did not finish: {message}",
+        "mcpConnected": "Connected: profile \"{name}\". {reach}",
+        "mcpProfilesEmpty": "No profiles saved on this machine yet. Call `connect` to sign in.",
+        "mcpProfilesRow": "- {name}{marks}: {details}",
+        "mcpProfileInUse": " (this session)",
+        "mcpProfileDefault": " (default)",
+        "mcpProfilesHint": "use_profile switches this session; `jot use <name>` in a terminal changes the default.",
+        "mcpUseProfileDone": "This session now uses profile \"{name}\". {reach} The default is unchanged: `jot use {name}` in a terminal makes it the default.",
+        "mcpDuplicateServer": "Another `jot` server is configured in {file}; remove it so the plugin's is the only one."
       }
     },
     "schemas": {
