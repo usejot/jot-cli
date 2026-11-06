@@ -28,7 +28,7 @@ then `jot init` in each repo picks which one it uses. `jot profile <name> <comma
 ## Commands
 
 ```
-jot 0.1.2: your Jot feedback, in the terminal and in your coding agent.
+jot 0.1.3: your Jot feedback, in the terminal and in your coding agent.
 
 Get started
   jot login                       connect this terminal to a workspace (opens the browser)
