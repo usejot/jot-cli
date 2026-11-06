@@ -1,0 +1,1129 @@
+{
+  "$comment": "scoreAnchor(stored, candidate, { textComparable }) and bestAnchorMatch(stored, candidates, { textComparable }) with contract.json#anchor weights. `textComparable` is absent (true) unless a vector sets it: false when the pin was filed in another language than the viewer's (anchorTextComparable). A stored label also matches the candidate's text and vice versa. Scores are compared to 6 decimal places. A null match means no candidate cleared the threshold — show the pin at its screen ratio, marked approximate.",
+  "contractVersion": "0.9.0",
+  "scores": [
+    {
+      "name": "the same element on another device",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.52,
+          "yRatio": 0.75
+        }
+      },
+      "score": 0.98923
+    },
+    {
+      "name": "another screen never matches",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Cart",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "score": 0
+    },
+    {
+      "name": "different developer identifiers never match",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button",
+          "identifier": "checkout.pay"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button",
+          "identifier": "checkout.cancel"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "score": 0
+    },
+    {
+      "name": "same identifier, everything else moved",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "identifier": "checkout.pay"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "ListView",
+            "index": 0
+          },
+          {
+            "type": "TextButton",
+            "index": 7
+          }
+        ],
+        "semantic": {
+          "identifier": "checkout.pay",
+          "label": "Pay"
+        },
+        "geometry": {
+          "xRatio": 0.1,
+          "yRatio": 0.1
+        }
+      },
+      "score": 0.717213
+    },
+    {
+      "name": "label matches ignoring case and whitespace",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "  PAY   now ",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "score": 1
+    },
+    {
+      "name": "a sibling button with other text",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "cancel",
+            "index": 3
+          }
+        ],
+        "semantic": {
+          "label": "Cancel",
+          "text": "Cancel",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.9
+        }
+      },
+      "score": 0.284167
+    },
+    {
+      "name": "path only, one wrapper inserted",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {},
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Padding",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {},
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "score": 0.857143
+    },
+    {
+      "name": "empty paths are identical",
+      "stored": {
+        "screen": "Home",
+        "path": [],
+        "semantic": {},
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.5
+        }
+      },
+      "candidate": {
+        "screen": "Home",
+        "path": [],
+        "semantic": {},
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.5
+        }
+      },
+      "score": 1
+    },
+    {
+      "name": "the same element on iOS and Android: label on one, text on the other",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.78
+        }
+      },
+      "score": 0.994667
+    },
+    {
+      "name": "a different element on the other platform never matches",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "Text",
+            "index": 0
+          }
+        ],
+        "semantic": {
+          "text": "Total",
+          "role": "text"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.6
+        }
+      },
+      "score": 0.263333
+    },
+    {
+      "name": "another language: label and text are not compared, structure carries it",
+      "textComparable": false,
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "text": "Payer maintenant",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.78
+        }
+      },
+      "score": 0.9904
+    },
+    {
+      "name": "another language compared as text would miss — why textComparable exists",
+      "textComparable": true,
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidate": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "text": "Payer maintenant",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.78
+        }
+      },
+      "score": 0.550222
+    }
+  ],
+  "matches": [
+    {
+      "name": "picks the matching button among siblings",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidates": [
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "App",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "Column",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "cancel",
+              "index": 3
+            }
+          ],
+          "semantic": {
+            "label": "Cancel",
+            "text": "Cancel",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.9
+          }
+        },
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "App",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "Column",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.52,
+            "yRatio": 0.75
+          }
+        },
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "App",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "Column",
+              "index": 0
+            },
+            {
+              "type": "Text",
+              "index": 0
+            }
+          ],
+          "semantic": {
+            "text": "Total"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.2
+          }
+        }
+      ],
+      "match": {
+        "index": 1,
+        "score": 0.98923
+      }
+    },
+    {
+      "name": "nothing clears the threshold: approximate",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidates": [
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "App",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "Column",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "cancel",
+              "index": 3
+            }
+          ],
+          "semantic": {
+            "label": "Cancel",
+            "text": "Cancel",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.9
+          }
+        }
+      ],
+      "match": null
+    },
+    {
+      "name": "a tie goes to the first candidate",
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "App",
+            "index": 0
+          },
+          {
+            "type": "Scaffold",
+            "index": 0
+          },
+          {
+            "type": "Column",
+            "index": 0
+          },
+          {
+            "type": "ElevatedButton",
+            "key": "pay",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "text": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidates": [
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "App",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "Column",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.8
+          }
+        },
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "App",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "Column",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.8
+          }
+        }
+      ],
+      "match": {
+        "index": 0,
+        "score": 1
+      }
+    },
+    {
+      "name": "another language: picks the same button among unkeyed siblings",
+      "textComparable": false,
+      "stored": {
+        "screen": "Checkout",
+        "path": [
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "ScrollView",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 0
+          },
+          {
+            "type": "View",
+            "index": 2
+          }
+        ],
+        "semantic": {
+          "label": "Pay now",
+          "role": "button"
+        },
+        "geometry": {
+          "xRatio": 0.5,
+          "yRatio": 0.8
+        }
+      },
+      "candidates": [
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "View",
+              "index": 0
+            },
+            {
+              "type": "ScrollView",
+              "index": 0
+            },
+            {
+              "type": "View",
+              "index": 0
+            },
+            {
+              "type": "View",
+              "index": 3
+            }
+          ],
+          "semantic": {
+            "text": "Annuler",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.88
+          }
+        },
+        {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "View",
+              "index": 0
+            },
+            {
+              "type": "ScrollView",
+              "index": 0
+            },
+            {
+              "type": "View",
+              "index": 0
+            },
+            {
+              "type": "View",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "text": "Payer maintenant",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.78
+          }
+        }
+      ],
+      "match": {
+        "index": 1,
+        "score": 0.9904
+      }
+    }
+  ]
+}

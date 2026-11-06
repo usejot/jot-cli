@@ -1,0 +1,24 @@
+{
+  "name": "@usejot/cli-darwin-x64",
+  "version": "0.1.2",
+  "description": "The jot CLI binary for darwin x64. Install @usejot/cli instead.",
+  "homepage": "https://docs.usejot.co/docs/ai/cli",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usejot/jot-cli.git"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin/jot"
+  ],
+  "preferUnplugged": true,
+  "publishConfig": {
+    "access": "public"
+  }
+}

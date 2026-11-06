@@ -1,0 +1,114 @@
+{
+  "$comment": "Where a native Google sign-in may return (wire.nativeAuth). `<scheme>://jot-auth` when the scheme is in the project's allowedRedirectSchemes and is not a web scheme; on desktop, `http://127.0.0.1:<port>/jot-auth` or `http://[::1]:<port>/jot-auth` (RFC 8252 loopback, any port) when the project has allowLoopbackAuth. `accepted` is the normalised redirect the API stores, or null when the sign-in is refused before it starts. SDKs build only accepted shapes; the API runs every case. `defaultSchemes`: the scheme an SDK uses when the app sets none (defaultAuthScheme) — every SDK runs these.",
+  "contractVersion": "0.9.0",
+  "cases": [
+    {
+      "name": "the project's own scheme",
+      "redirect": "com.acme.shop://jot-auth",
+      "allowedSchemes": ["com.acme.shop"],
+      "allowLoopback": false,
+      "accepted": "com.acme.shop://jot-auth"
+    },
+    {
+      "name": "scheme and host compared case-insensitively; path and query dropped",
+      "redirect": "COM.ACME.SHOP://JOT-AUTH/extra?x=1",
+      "allowedSchemes": ["com.acme.shop"],
+      "allowLoopback": false,
+      "accepted": "com.acme.shop://jot-auth"
+    },
+    {
+      "name": "an unregistered scheme",
+      "redirect": "com.evil.app://jot-auth",
+      "allowedSchemes": ["com.acme.shop"],
+      "allowLoopback": false,
+      "accepted": null
+    },
+    {
+      "name": "a web scheme even when listed",
+      "redirect": "https://jot-auth",
+      "allowedSchemes": ["https"],
+      "allowLoopback": false,
+      "accepted": null
+    },
+    {
+      "name": "IPv4 loopback with a port, loopback allowed",
+      "redirect": "http://127.0.0.1:53682/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": "http://127.0.0.1:53682/jot-auth"
+    },
+    {
+      "name": "IPv6 loopback with a port, loopback allowed",
+      "redirect": "http://[::1]:61000/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": "http://[::1]:61000/jot-auth"
+    },
+    {
+      "name": "loopback without a port, loopback allowed",
+      "redirect": "http://127.0.0.1/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": "http://127.0.0.1/jot-auth"
+    },
+    {
+      "name": "loopback when the project has not allowed it",
+      "redirect": "http://127.0.0.1:53682/jot-auth",
+      "allowedSchemes": ["com.acme.shop"],
+      "allowLoopback": false,
+      "accepted": null
+    },
+    {
+      "name": "localhost is a name, not a loopback address",
+      "redirect": "http://localhost:53682/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": null
+    },
+    {
+      "name": "loopback on another path",
+      "redirect": "http://127.0.0.1:53682/callback",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": null
+    },
+    {
+      "name": "https loopback",
+      "redirect": "https://127.0.0.1:53682/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": null
+    },
+    {
+      "name": "loopback with credentials",
+      "redirect": "http://user@127.0.0.1:53682/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": null
+    },
+    {
+      "name": "another private address",
+      "redirect": "http://192.168.1.4:53682/jot-auth",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": null
+    },
+    {
+      "name": "loopback with a query is normalised to the bare path",
+      "redirect": "http://127.0.0.1:53682/jot-auth?x=1#y",
+      "allowedSchemes": [],
+      "allowLoopback": true,
+      "accepted": "http://127.0.0.1:53682/jot-auth"
+    }
+  ],
+  "defaultSchemes": [
+    { "name": "an iOS bundle id", "appId": "com.acme.shop", "scheme": "jot.com.acme.shop" },
+    { "name": "lowercased", "appId": "com.Acme.Shop", "scheme": "jot.com.acme.shop" },
+    {
+      "name": "an Android applicationId with an underscore",
+      "appId": "co.acme.shop_app",
+      "scheme": "jot.co.acme.shop-app"
+    },
+    { "name": "hyphens and digits kept", "appId": "io.x-1.app2", "scheme": "jot.io.x-1.app2" }
+  ]
+}

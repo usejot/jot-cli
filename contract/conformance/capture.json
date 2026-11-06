@@ -1,0 +1,70 @@
+{
+  "$comment": "CAPTURE_QUALITY (SPEC §10.1). scale: captureScale(source, maxLongEdge) to 6 decimal places — the fraction of a source (device px) kept so its long edge fits, never above 1. kbps: videoKbps(frame, fps) — width × height × fps × bitsPerPixel / 1000, rounded, clamped to [minKbps, maxKbps]. An encoder then rounds the frame to its own alignment (even on Apple and desktop, 16 on Android).",
+  "contractVersion": "0.9.0",
+  "scale": [
+    {
+      "name": "iPhone 17 Pro portrait, video",
+      "source": { "width": 1206, "height": 2622 },
+      "maxLongEdge": 1280,
+      "scale": 0.488177
+    },
+    {
+      "name": "Pixel 9 Pro portrait, video",
+      "source": { "width": 1280, "height": 2856 },
+      "maxLongEdge": 1280,
+      "scale": 0.448179
+    },
+    {
+      "name": "iPhone landscape, video",
+      "source": { "width": 2622, "height": 1206 },
+      "maxLongEdge": 1280,
+      "scale": 0.488177
+    },
+    {
+      "name": "desktop window at 2x, video",
+      "source": { "width": 2880, "height": 1800 },
+      "maxLongEdge": 1280,
+      "scale": 0.444444
+    },
+    {
+      "name": "small window already fits, video",
+      "source": { "width": 1024, "height": 768 },
+      "maxLongEdge": 1280,
+      "scale": 1
+    },
+    {
+      "name": "phone screenshot at 2x fits",
+      "source": { "width": 804, "height": 1748 },
+      "maxLongEdge": 2560,
+      "scale": 1
+    },
+    {
+      "name": "desktop screenshot at 2x",
+      "source": { "width": 2880, "height": 1800 },
+      "maxLongEdge": 2560,
+      "scale": 0.888889
+    }
+  ],
+  "kbps": [
+    {
+      "name": "phone portrait frame",
+      "frame": { "width": 588, "height": 1280 },
+      "fps": 6,
+      "kbps": 542
+    },
+    { "name": "desktop frame", "frame": { "width": 1280, "height": 800 }, "fps": 6, "kbps": 737 },
+    { "name": "tablet frame", "frame": { "width": 960, "height": 1280 }, "fps": 6, "kbps": 885 },
+    {
+      "name": "throttled to 1 fps: the floor",
+      "frame": { "width": 588, "height": 1280 },
+      "fps": 1,
+      "kbps": 400
+    },
+    {
+      "name": "a huge frame: the ceiling",
+      "frame": { "width": 1920, "height": 1280 },
+      "fps": 6,
+      "kbps": 1500
+    }
+  ]
+}

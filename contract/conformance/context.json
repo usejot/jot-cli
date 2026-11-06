@@ -1,0 +1,555 @@
+{
+  "$comment": "Native context building. `urls`: nativeContextUrl(bundleId, screen) must produce exactly `url` (app://<bundleId>/<screen>, each route segment percent-encoded, leading slashes dropped). `valid` contexts must be accepted by CaptureContext (contract.json#wire.schemas.CaptureContext) and `invalid` ones rejected. A context with no `source` is web. A native context needs `anchor` and `pin` unless `crashed` is true; a crash report still needs `screen` (the last screen the app reported).",
+  "contractVersion": "0.9.0",
+  "urls": [
+    {
+      "bundleId": "com.acme.shop",
+      "screen": "Checkout",
+      "url": "app://com.acme.shop/Checkout"
+    },
+    {
+      "bundleId": "com.acme.shop",
+      "screen": "/settings/profile",
+      "url": "app://com.acme.shop/settings/profile"
+    },
+    {
+      "bundleId": "com.acme.shop",
+      "screen": "/",
+      "url": "app://com.acme.shop/"
+    },
+    {
+      "bundleId": "com.acme.shop",
+      "screen": "Order Details",
+      "url": "app://com.acme.shop/Order%20Details"
+    },
+    {
+      "bundleId": "io.acme.app",
+      "screen": "checkout/step?2",
+      "url": "app://io.acme.app/checkout/step%3F2"
+    }
+  ],
+  "valid": [
+    {
+      "name": "web, as every browser widget sends it",
+      "context": {
+        "url": "https://app.acme.test/checkout",
+        "domSelector": "#pay",
+        "browser": "Chrome 130",
+        "os": "macOS"
+      }
+    },
+    {
+      "name": "web with source and pin",
+      "context": {
+        "url": "https://app.acme.test/checkout",
+        "domSelector": "#pay",
+        "browser": "Chrome 130",
+        "os": "macOS",
+        "source": "web",
+        "pin": {
+          "xRatio": 0.1,
+          "yRatio": 0.9
+        },
+        "environment": "Staging"
+      }
+    },
+    {
+      "name": "iOS phone",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "Android with a crash marker and screenshot",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "android",
+        "osVersion": "15",
+        "deviceModel": "Pixel 9",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        },
+        "crashed": true,
+        "screenshotUrl": "https://cdn.acme.test/s.png"
+      }
+    },
+    {
+      "name": "macOS desktop",
+      "context": {
+        "source": "desktop",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "macos",
+        "osVersion": "15.1",
+        "deviceModel": "Mac15,3",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "pixelRatio": 2,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "Windows desktop, anchor with an identifier only",
+      "context": {
+        "source": "desktop",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "windows",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [],
+          "semantic": {
+            "identifier": "checkout.pay"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "crash report: no anchor, no pin, the screen it crashed on",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "crashed": true
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "name": "web without a selector",
+      "context": {
+        "url": "https://app.acme.test/checkout",
+        "browser": "Chrome 130",
+        "os": "macOS"
+      }
+    },
+    {
+      "name": "native with an http url",
+      "context": {
+        "source": "mobile",
+        "url": "https://app.acme.test/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "native without an anchor",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "native without a pin",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        }
+      }
+    },
+    {
+      "name": "native on an unknown platform",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "tizen",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "pin outside the element",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 1.2,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "unknown source",
+      "context": {
+        "source": "watch",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "anchor": {
+          "screen": "Checkout",
+          "path": [
+            {
+              "type": "MaterialApp",
+              "index": 0
+            },
+            {
+              "type": "Scaffold",
+              "index": 0
+            },
+            {
+              "type": "ElevatedButton",
+              "key": "pay",
+              "index": 2
+            }
+          ],
+          "semantic": {
+            "label": "Pay now",
+            "text": "Pay now",
+            "role": "button"
+          },
+          "geometry": {
+            "xRatio": 0.5,
+            "yRatio": 0.82
+          }
+        },
+        "pin": {
+          "xRatio": 0.25,
+          "yRatio": 0.5
+        }
+      }
+    },
+    {
+      "name": "no anchor and no pin when crashed is false",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "screen": "Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "crashed": false
+      }
+    },
+    {
+      "name": "crash report without a screen",
+      "context": {
+        "source": "mobile",
+        "url": "app://com.acme.shop/Checkout",
+        "platform": "ios",
+        "osVersion": "18.1",
+        "deviceModel": "iPhone16,2",
+        "appVersion": "2.4.0",
+        "appBuild": "412",
+        "locale": "en-GB",
+        "viewportWidth": 430,
+        "viewportHeight": 932,
+        "pixelRatio": 3,
+        "crashed": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,350 @@
+{
+  "$comment": "The jot CLI and the MCP server's shared rules (contract.json#cli). profileResolution: given flag, env, the repo's .jot.json binding and the config (a case's own `config` replaces the top-level one), the chosen profile or null; `error` names the agent.errors (profileNotFound) or cli.copy.messages key and its params. walkUp: write `files` (paths relative to a fresh temp dir, values are the JSON written) and look for the nearest .jot.json from `cwd`; `expect.path` is relative to the temp dir. args: argv → positionals and flags (true for a boolean flag), or `error`. connect: the dashboard's parse of the /cli/connect query, null when refused. watch: `unseen` of `comments` given `seen` (ids, oldest createdAt first), and markSeen(seen, mark) capped at `cap` (contract cli.watch.seenCap in real use).",
+  "contractVersion": "0.9.0",
+  "config": {
+    "default": "office",
+    "profiles": {
+      "office": { "apiUrl": "https://api.usejot.co", "token": "tok_office", "orgName": "Office" },
+      "personal": { "apiUrl": "http://localhost:4000", "token": "tok_personal" }
+    }
+  },
+  "profileResolution": [
+    {
+      "name": "the flag beats JOT_PROFILE, the repo and the default",
+      "flag": "personal",
+      "env": { "JOT_PROFILE": "office", "JOT_API_TOKEN": "tok_env" },
+      "binding": { "profile": "office" },
+      "expect": { "name": "personal", "apiUrl": "http://localhost:4000", "token": "tok_personal" }
+    },
+    {
+      "name": "JOT_PROFILE beats the repo and the default",
+      "flag": null,
+      "env": { "JOT_PROFILE": "personal" },
+      "binding": { "profile": "office" },
+      "expect": { "name": "personal", "apiUrl": "http://localhost:4000", "token": "tok_personal" }
+    },
+    {
+      "name": "the repo's .jot.json beats the default and brings its project",
+      "flag": null,
+      "env": {},
+      "binding": { "profile": "personal", "project": "p1" },
+      "expect": {
+        "name": "personal",
+        "apiUrl": "http://localhost:4000",
+        "token": "tok_personal",
+        "projectId": "p1"
+      }
+    },
+    {
+      "name": "a binding with only a project binds it to the profile in use",
+      "flag": null,
+      "env": {},
+      "binding": { "project": "p2" },
+      "expect": {
+        "name": "office",
+        "apiUrl": "https://api.usejot.co",
+        "token": "tok_office",
+        "projectId": "p2"
+      }
+    },
+    {
+      "name": "another profile than the repo's does not take the repo's project",
+      "flag": "office",
+      "env": {},
+      "binding": { "profile": "personal", "project": "p1" },
+      "expect": { "name": "office", "apiUrl": "https://api.usejot.co", "token": "tok_office" }
+    },
+    {
+      "name": "the default beats the legacy env token",
+      "flag": null,
+      "env": { "JOT_API_TOKEN": "tok_env" },
+      "binding": null,
+      "expect": { "name": "office", "apiUrl": "https://api.usejot.co", "token": "tok_office" }
+    },
+    {
+      "name": "the legacy env token when there are no profiles, hosted API by default",
+      "flag": null,
+      "env": { "JOT_API_TOKEN": "tok_env" },
+      "binding": null,
+      "config": { "profiles": {} },
+      "expect": { "name": "env", "apiUrl": "https://api.usejot.co", "token": "tok_env" }
+    },
+    {
+      "name": "the legacy env token with BACKEND_API_URL",
+      "flag": null,
+      "env": { "JOT_API_TOKEN": "tok_env", "BACKEND_API_URL": "http://localhost:4000" },
+      "binding": null,
+      "config": { "profiles": {} },
+      "expect": { "name": "env", "apiUrl": "http://localhost:4000", "token": "tok_env" }
+    },
+    {
+      "name": "the legacy env token never takes a repo's project",
+      "flag": null,
+      "env": { "JOT_API_TOKEN": "tok_env" },
+      "binding": { "project": "p1" },
+      "config": { "profiles": {} },
+      "expect": { "name": "env", "apiUrl": "https://api.usejot.co", "token": "tok_env" }
+    },
+    {
+      "name": "nothing set up",
+      "flag": null,
+      "env": {},
+      "binding": null,
+      "config": { "profiles": {} },
+      "expect": null
+    },
+    {
+      "name": "a flag naming a missing profile is an error, not a fall-through",
+      "flag": "ghost",
+      "env": { "JOT_API_TOKEN": "tok_env" },
+      "binding": null,
+      "error": { "message": "profileNotFound", "params": { "name": "ghost" } }
+    },
+    {
+      "name": "JOT_PROFILE naming a missing profile is an error",
+      "flag": null,
+      "env": { "JOT_PROFILE": "ghost" },
+      "binding": null,
+      "error": { "message": "profileNotFound", "params": { "name": "ghost" } }
+    },
+    {
+      "name": "a .jot.json naming a missing profile is an error",
+      "flag": null,
+      "env": { "JOT_API_TOKEN": "tok_env" },
+      "binding": { "profile": "ghost" },
+      "error": { "message": "profileNotFound", "params": { "name": "ghost" } }
+    }
+  ],
+  "configFile": [
+    {
+      "name": "entries without apiUrl or token are dropped",
+      "file": {
+        "default": "a",
+        "profiles": {
+          "a": { "apiUrl": "https://api.usejot.co", "token": "t", "extra": 1 },
+          "b": { "apiUrl": "https://api.usejot.co" },
+          "c": "nope"
+        }
+      },
+      "expect": {
+        "default": "a",
+        "profiles": { "a": { "apiUrl": "https://api.usejot.co", "token": "t" } }
+      }
+    },
+    {
+      "name": "a default that names nothing is no default",
+      "file": {
+        "default": "gone",
+        "profiles": { "a": { "apiUrl": "https://api.usejot.co", "token": "t" } }
+      },
+      "expect": { "profiles": { "a": { "apiUrl": "https://api.usejot.co", "token": "t" } } }
+    },
+    {
+      "name": "not an object is an empty config",
+      "file": [1, 2],
+      "expect": { "profiles": {} }
+    }
+  ],
+  "walkUp": [
+    {
+      "name": "the .jot.json in a parent directory",
+      "files": { "repo/.jot.json": { "profile": "office", "project": "p1" } },
+      "cwd": "repo/src/deep",
+      "expect": { "path": "repo/.jot.json", "binding": { "profile": "office", "project": "p1" } }
+    },
+    {
+      "name": "the nearest one wins",
+      "files": {
+        "repo/.jot.json": { "profile": "office" },
+        "repo/apps/web/.jot.json": { "profile": "personal" }
+      },
+      "cwd": "repo/apps/web/src",
+      "expect": { "path": "repo/apps/web/.jot.json", "binding": { "profile": "personal" } }
+    },
+    {
+      "name": "in the directory itself",
+      "files": { "repo/.jot.json": { "project": "p9" } },
+      "cwd": "repo",
+      "expect": { "path": "repo/.jot.json", "binding": { "project": "p9" } }
+    },
+    {
+      "name": "fields that are not strings are dropped",
+      "files": { "repo/.jot.json": { "profile": 5, "project": "p1", "token": "never-read" } },
+      "cwd": "repo",
+      "expect": { "path": "repo/.jot.json", "binding": { "project": "p1" } }
+    },
+    {
+      "name": "none on the way up (a sibling's does not count)",
+      "files": { "other/.jot.json": { "profile": "office" }, "repo/src/.keep": {} },
+      "cwd": "repo/src",
+      "expect": null
+    }
+  ],
+  "args": [
+    {
+      "name": "operands and flags",
+      "argv": ["status", "abc123", "resolved", "-m", "Fixed in #42", "--profile", "office"],
+      "expect": {
+        "positionals": ["status", "abc123", "resolved"],
+        "flags": { "message": "Fixed in #42", "profile": "office" }
+      }
+    },
+    {
+      "name": "profile <name> <command…> is --profile <name> <command…>",
+      "argv": ["profile", "office", "status", "abc123", "resolved"],
+      "expect": {
+        "positionals": ["status", "abc123", "resolved"],
+        "flags": { "profile": "office" }
+      }
+    },
+    {
+      "name": "profile <name> keeps the command's own flags",
+      "argv": ["profile", "office", "list", "--json", "--status=all"],
+      "expect": {
+        "positionals": ["list"],
+        "flags": { "profile": "office", "json": true, "status": "all" }
+      }
+    },
+    {
+      "name": "profile with a name and no command",
+      "argv": ["profile", "office"],
+      "error": { "message": "profileCommandUsage" }
+    },
+    {
+      "name": "profile alone",
+      "argv": ["profile"],
+      "error": { "message": "profileCommandUsage" }
+    },
+    {
+      "name": "--name=value keeps everything after the first =",
+      "argv": ["reply", "c1", "--message=a=b"],
+      "expect": { "positionals": ["reply", "c1"], "flags": { "message": "a=b" } }
+    },
+    {
+      "name": "boolean flags never take the next word",
+      "argv": ["watch", "--once", "--all", "--json", "extra"],
+      "expect": {
+        "positionals": ["watch", "extra"],
+        "flags": { "once": true, "all": true, "json": true }
+      }
+    },
+    {
+      "name": "short spellings",
+      "argv": ["-h", "-v", "-p", "office"],
+      "expect": {
+        "positionals": [],
+        "flags": { "help": true, "version": true, "profile": "office" }
+      }
+    },
+    {
+      "name": "a lone - is an operand",
+      "argv": ["reply", "-"],
+      "expect": { "positionals": ["reply", "-"], "flags": {} }
+    },
+    {
+      "name": "a value flag at the end",
+      "argv": ["list", "--status"],
+      "error": { "message": "flagNeedsValue", "params": { "name": "status" } }
+    }
+  ],
+  "connect": [
+    {
+      "name": "a full request",
+      "query": "port=51234&state=0123456789abcdef0123456789abcdef&host=laptop.local&name=office",
+      "expect": {
+        "port": 51234,
+        "state": "0123456789abcdef0123456789abcdef",
+        "host": "laptop.local",
+        "name": "office"
+      }
+    },
+    {
+      "name": "the lowest port, the shortest state, no host or name",
+      "query": "port=1024&state=abcdefghijklmnop",
+      "expect": { "port": 1024, "state": "abcdefghijklmnop", "host": "terminal", "name": null }
+    },
+    {
+      "name": "the highest port, the longest state",
+      "query": "port=65535&state=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "expect": {
+        "port": 65535,
+        "state": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "host": "terminal",
+        "name": null
+      }
+    },
+    {
+      "name": "labels are trimmed and cut",
+      "query": "port=4000&state=abc_def-ghi_jkl-mno&host=%20%20box%20%20&name=%20%20",
+      "expect": { "port": 4000, "state": "abc_def-ghi_jkl-mno", "host": "box", "name": null }
+    },
+    { "name": "a privileged port", "query": "port=1023&state=abcdefghijklmnop", "expect": null },
+    { "name": "a port too high", "query": "port=65536&state=abcdefghijklmnop", "expect": null },
+    {
+      "name": "a port with a sign",
+      "query": "port=%2B4000&state=abcdefghijklmnop",
+      "expect": null
+    },
+    {
+      "name": "a port that is not an integer",
+      "query": "port=4000.5&state=abcdefghijklmnop",
+      "expect": null
+    },
+    { "name": "a six-digit port", "query": "port=100000&state=abcdefghijklmnop", "expect": null },
+    { "name": "no port", "query": "state=abcdefghijklmnop", "expect": null },
+    { "name": "a state too short", "query": "port=4000&state=abcdefghijklmno", "expect": null },
+    {
+      "name": "a state too long",
+      "query": "port=4000&state=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "expect": null
+    },
+    {
+      "name": "a state with other characters",
+      "query": "port=4000&state=abcdefgh%2Fijklmnop",
+      "expect": null
+    },
+    { "name": "no state", "query": "port=4000", "expect": null }
+  ],
+  "watch": [
+    {
+      "name": "unseen comments come out oldest first",
+      "seen": ["c1"],
+      "comments": [
+        { "id": "c3", "createdAt": "2026-11-05T10:03:00.000Z" },
+        { "id": "c1", "createdAt": "2026-11-05T10:01:00.000Z" },
+        { "id": "c2", "createdAt": "2026-11-05T10:02:00.000Z" }
+      ],
+      "unseen": ["c2", "c3"],
+      "mark": ["c2"],
+      "cap": 2000,
+      "seenAfter": ["c1", "c2"]
+    },
+    {
+      "name": "nothing new",
+      "seen": ["c1", "c2"],
+      "comments": [{ "id": "c2", "createdAt": "2026-11-05T10:02:00.000Z" }],
+      "unseen": [],
+      "mark": [],
+      "cap": 2000,
+      "seenAfter": ["c1", "c2"]
+    },
+    {
+      "name": "marking an id already seen moves it to the end",
+      "seen": ["c1", "c2", "c3"],
+      "comments": [],
+      "unseen": [],
+      "mark": ["c1"],
+      "cap": 2000,
+      "seenAfter": ["c2", "c3", "c1"]
+    },
+    {
+      "name": "the cap keeps the newest ids",
+      "seen": ["c1", "c2", "c3"],
+      "comments": [{ "id": "c4", "createdAt": "2026-11-05T10:04:00.000Z" }],
+      "unseen": ["c4"],
+      "mark": ["c4"],
+      "cap": 3,
+      "seenAfter": ["c2", "c3", "c4"]
+    }
+  ]
+}

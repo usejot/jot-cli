@@ -1,0 +1,25 @@
+{
+  "$comment": "Copy lookup. On a native platform an SDK shows `<key>.native` when the copy table has it, else `<key>`; the web shows `<key>`. `{slot}` markers are filled at the call site and are not part of this lookup.",
+  "contractVersion": "0.9.0",
+  "nativeSuffix": ".native",
+  "lookups": [
+    {
+      "key": "intro.body",
+      "native": false,
+      "text": "Click anything on this page and tell the team what's wrong."
+    },
+    {
+      "key": "intro.body",
+      "native": true,
+      "text": "Tap anything on this screen and tell the team what's wrong."
+    },
+    {
+      "key": "composer.consent.mobile",
+      "native": true,
+      "text": "Screenshot attached · fields masked on this device"
+    },
+    { "key": "intro.guest", "native": true, "text": "Continue as guest" },
+    { "key": "crash.title", "native": true, "text": "The app crashed" },
+    { "key": "crash.dismiss", "native": true, "text": "Not now" }
+  ]
+}

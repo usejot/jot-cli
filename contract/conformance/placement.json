@@ -1,0 +1,22 @@
+{
+  "$comment": "Which layout a viewport gets: compact (bottom sheets) when width < placement.compactWidth OR height < placement.compactHeight; cards otherwise. Logical pixels on native, CSS pixels on the web.",
+  "contractVersion": "0.9.0",
+  "compact": [
+    { "name": "portrait phone", "width": 390, "height": 844, "compact": true },
+    { "name": "landscape phone", "width": 844, "height": 390, "compact": true },
+    { "name": "landscape Android phone", "width": 816, "height": 366, "compact": true },
+    { "name": "large landscape phone", "width": 932, "height": 430, "compact": true },
+    { "name": "just below compactWidth", "width": 639, "height": 900, "compact": true },
+    { "name": "just below compactHeight", "width": 1024, "height": 499, "compact": true },
+    {
+      "name": "exactly compactWidth x compactHeight",
+      "width": 640,
+      "height": 500,
+      "compact": false
+    },
+    { "name": "portrait tablet", "width": 768, "height": 1024, "compact": false },
+    { "name": "landscape tablet", "width": 1024, "height": 768, "compact": false },
+    { "name": "landscape 7-inch tablet", "width": 1024, "height": 552, "compact": false },
+    { "name": "desktop window", "width": 1280, "height": 720, "compact": false }
+  ]
+}

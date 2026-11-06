@@ -1,0 +1,242 @@
+{
+  "$comment": "Every Jot MCP server must accept each `valid` input for its tool and reject each `invalid` one.",
+  "contractVersion": "0.9.0",
+  "valid": [
+    {
+      "tool": "fetch_feedback",
+      "input": {
+        "projectId": "p1"
+      }
+    },
+    {
+      "tool": "fetch_feedback",
+      "input": {}
+    },
+    {
+      "tool": "fetch_feedback",
+      "input": {
+        "projectId": "p1",
+        "status": "OPEN",
+        "environment": "staging"
+      }
+    },
+    {
+      "tool": "fetch_feedback",
+      "input": {
+        "projectId": "p1",
+        "source": [
+          "PUBLIC"
+        ]
+      }
+    },
+    {
+      "tool": "fetch_feedback",
+      "input": {
+        "projectId": "p1",
+        "source": [
+          "TEAM",
+          "INVITED"
+        ]
+      }
+    },
+    {
+      "tool": "update_status",
+      "input": {
+        "commentId": "c1",
+        "status": "RESOLVED"
+      }
+    },
+    {
+      "tool": "post_reply",
+      "input": {
+        "commentId": "c1",
+        "message": "Fixed in PR #204"
+      }
+    },
+    {
+      "tool": "create_batch_note",
+      "input": {
+        "comment_ids": [
+          "c1",
+          "c2"
+        ],
+        "message": "Resolved both"
+      }
+    },
+    {
+      "tool": "get_comment",
+      "input": {
+        "commentId": "c1"
+      }
+    },
+    {
+      "tool": "get_comment",
+      "input": {
+        "id": "c1"
+      }
+    },
+    {
+      "tool": "update_status",
+      "input": {
+        "id": "c1",
+        "status": "IN_PROGRESS"
+      }
+    },
+    {
+      "tool": "update_status",
+      "input": {
+        "commentIds": [
+          "c1",
+          "c2"
+        ],
+        "status": "RESOLVED"
+      }
+    },
+    {
+      "tool": "post_reply",
+      "input": {
+        "id": "c1",
+        "content": "Fixed in PR #204"
+      }
+    },
+    {
+      "tool": "post_reply",
+      "input": {
+        "commentId": "c1",
+        "body": "Fixed"
+      }
+    },
+    {
+      "tool": "fetch_feedback",
+      "input": {
+        "q": "wallet",
+        "label": "BUG",
+        "limit": 50,
+        "cursor": "abc"
+      }
+    },
+    {
+      "tool": "list_projects",
+      "input": {}
+    }
+  ],
+  "invalid": [
+    {
+      "name": "unknown reporter source",
+      "tool": "fetch_feedback",
+      "input": {
+        "projectId": "p1",
+        "source": [
+          "ANONYMOUS"
+        ]
+      }
+    },
+    {
+      "name": "empty source list",
+      "tool": "fetch_feedback",
+      "input": {
+        "projectId": "p1",
+        "source": []
+      }
+    },
+    {
+      "name": "an agent can never approve",
+      "tool": "update_status",
+      "input": {
+        "commentId": "c1",
+        "status": "APPROVED"
+      }
+    },
+    {
+      "name": "empty reply",
+      "tool": "post_reply",
+      "input": {
+        "commentId": "c1",
+        "message": ""
+      }
+    },
+    {
+      "name": "empty batch",
+      "tool": "create_batch_note",
+      "input": {
+        "comment_ids": [],
+        "message": "x"
+      }
+    },
+    {
+      "name": "batch over 50",
+      "tool": "create_batch_note",
+      "input": {
+        "comment_ids": [
+          "c1",
+          "c2",
+          "c3",
+          "c4",
+          "c5",
+          "c6",
+          "c7",
+          "c8",
+          "c9",
+          "c10",
+          "c11",
+          "c12",
+          "c13",
+          "c14",
+          "c15",
+          "c16",
+          "c17",
+          "c18",
+          "c19",
+          "c20",
+          "c21",
+          "c22",
+          "c23",
+          "c24",
+          "c25",
+          "c26",
+          "c27",
+          "c28",
+          "c29",
+          "c30",
+          "c31",
+          "c32",
+          "c33",
+          "c34",
+          "c35",
+          "c36",
+          "c37",
+          "c38",
+          "c39",
+          "c40",
+          "c41",
+          "c42",
+          "c43",
+          "c44",
+          "c45",
+          "c46",
+          "c47",
+          "c48",
+          "c49",
+          "c50",
+          "c51"
+        ],
+        "message": "x"
+      }
+    },
+    {
+      "name": "limit over 100",
+      "tool": "fetch_feedback",
+      "input": {
+        "limit": 101
+      }
+    },
+    {
+      "name": "empty id list",
+      "tool": "update_status",
+      "input": {
+        "commentIds": [],
+        "status": "RESOLVED"
+      }
+    }
+  ]
+}

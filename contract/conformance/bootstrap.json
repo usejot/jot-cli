@@ -1,0 +1,111 @@
+{
+  "$comment": "The first call an SDK makes (wire.endpoints.bootstrap): session and forPage in one round trip. `endpoint` must match the endpoint table row exactly. Query vectors must be accepted / rejected by WidgetBootstrapQuery; response vectors by WidgetBootstrapResponse. `forPage: null` means this caller may not list pins yet — render from `session`, and call forPage after sign-in. The older session and forPage endpoints keep working; an SDK may use either path.",
+  "contractVersion": "0.9.0",
+  "endpoint": {
+    "name": "bootstrap",
+    "method": "GET",
+    "path": "/bootstrap",
+    "auth": "optional",
+    "request": null,
+    "response": "WidgetBootstrapResponse"
+  },
+  "validQueries": [
+    { "name": "a page", "query": { "url": "https://acme.test/checkout?step=2" } },
+    {
+      "name": "an anonymous reviewer's own Jots",
+      "query": { "url": "https://acme.test/", "ids": "cmb1x2y3z0000abcd,cmb1x2y3z0001abcd" }
+    },
+    {
+      "name": "a member asking for the whole project",
+      "query": { "url": "app://co.acme.shop/Checkout", "scope": "all" }
+    }
+  ],
+  "invalidQueries": [
+    { "name": "no url", "query": {} },
+    { "name": "a url that is not a url", "query": { "url": "/checkout" } },
+    { "name": "ids with a space", "query": { "url": "https://acme.test/", "ids": "a, b" } },
+    { "name": "an empty id", "query": { "url": "https://acme.test/", "ids": "a,,b" } },
+    { "name": "an unknown scope", "query": { "url": "https://acme.test/", "scope": "org" } }
+  ],
+  "valid": [
+    {
+      "name": "a member with pins on the page",
+      "response": {
+        "session": {
+          "projectId": "proj_1",
+          "orgId": "org_1",
+          "name": "Checkout",
+          "access": "MEMBERS_ONLY",
+          "maskSelectors": [".card-number"],
+          "maskIds": [],
+          "captureNetworkBodies": true,
+          "googleSignIn": true,
+          "captureAllowed": true,
+          "branding": false,
+          "dashboardOrigin": "https://app.usejot.co"
+        },
+        "forPage": {
+          "comments": [
+            {
+              "id": "cmt_1",
+              "number": 141,
+              "body": "The total is wrong",
+              "status": "OPEN",
+              "createdAt": "2026-10-22T09:00:00.000Z",
+              "context": {
+                "url": "https://acme.test/checkout",
+                "domSelector": "#total",
+                "pin": { "xRatio": 0.5, "yRatio": 0.25 }
+              },
+              "reporterName": null,
+              "author": { "id": "user_1", "name": "Ada", "avatarUrl": null },
+              "mentions": [],
+              "replies": []
+            }
+          ],
+          "mentionedUsers": []
+        }
+      }
+    },
+    {
+      "name": "signed out on a members-only project",
+      "response": {
+        "session": {
+          "projectId": "proj_1",
+          "orgId": "org_1",
+          "name": "Checkout",
+          "access": "MEMBERS_ONLY",
+          "maskSelectors": [],
+          "maskIds": [],
+          "captureNetworkBodies": false,
+          "googleSignIn": false,
+          "captureAllowed": true,
+          "branding": true,
+          "dashboardOrigin": "https://app.usejot.co"
+        },
+        "forPage": null
+      }
+    }
+  ],
+  "invalid": [
+    { "name": "no session", "response": { "forPage": null } },
+    {
+      "name": "forPage left out instead of null",
+      "response": {
+        "session": {
+          "projectId": "proj_1",
+          "orgId": "org_1",
+          "name": "Checkout",
+          "access": "ANONYMOUS_ALLOWED",
+          "maskSelectors": [],
+          "maskIds": [],
+          "captureNetworkBodies": true,
+          "googleSignIn": false,
+          "captureAllowed": true,
+          "branding": true,
+          "dashboardOrigin": "https://app.usejot.co"
+        }
+      }
+    }
+  ]
+}

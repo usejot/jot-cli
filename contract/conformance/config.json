@@ -1,0 +1,71 @@
+{
+  "$comment": "Every Jot SDK must turn each valid `config` into exactly `attributes` on the embed tag (or the platform's equivalent), and must reject each invalid one. Attribute values are strings.",
+  "contractVersion": "0.9.0",
+  "valid": [
+    {
+      "name": "minimal",
+      "config": { "projectKey": "pk_test_123" },
+      "attributes": { "data-jot-key": "pk_test_123" }
+    },
+    {
+      "name": "edge tab on the left, 30% down",
+      "config": { "projectKey": "pk_test_123", "trigger": "tab", "edge": "left", "offset": 30 },
+      "attributes": {
+        "data-jot-key": "pk_test_123",
+        "data-jot-trigger": "tab",
+        "data-jot-edge": "left",
+        "data-jot-offset": "30"
+      }
+    },
+    {
+      "name": "tab on the top edge, labelled, with the bug glyph",
+      "config": {
+        "projectKey": "pk_test_123",
+        "trigger": "tab",
+        "position": "top",
+        "label": "Report a bug",
+        "icon": "bug"
+      },
+      "attributes": {
+        "data-jot-key": "pk_test_123",
+        "data-jot-trigger": "tab",
+        "data-jot-position": "top",
+        "data-jot-label": "Report a bug",
+        "data-jot-icon": "bug"
+      }
+    },
+    {
+      "name": "environment is passed through as written",
+      "config": { "projectKey": "pk_test_123", "environment": "Staging" },
+      "attributes": { "data-jot-key": "pk_test_123", "data-jot-env": "Staging" }
+    },
+    {
+      "name": "autostart false is written",
+      "config": { "projectKey": "pk_test_123", "autostart": false },
+      "attributes": { "data-jot-key": "pk_test_123", "data-jot-autostart": "false" }
+    },
+    {
+      "name": "autostart true is the default and writes nothing",
+      "config": { "projectKey": "pk_test_123", "autostart": true },
+      "attributes": { "data-jot-key": "pk_test_123" }
+    }
+  ],
+  "invalid": [
+    { "name": "missing projectKey", "config": {} },
+    { "name": "empty projectKey", "config": { "projectKey": "" } },
+    { "name": "unknown trigger", "config": { "projectKey": "pk", "trigger": "bubble" } },
+    { "name": "unknown edge", "config": { "projectKey": "pk", "edge": "top" } },
+    { "name": "unknown position", "config": { "projectKey": "pk", "position": "middle" } },
+    { "name": "unknown icon", "config": { "projectKey": "pk", "icon": "star" } },
+    { "name": "empty label", "config": { "projectKey": "pk", "label": "" } },
+    {
+      "name": "label longer than 24 characters",
+      "config": { "projectKey": "pk", "label": "Tell us what went wrong today" }
+    },
+    { "name": "offset above 100", "config": { "projectKey": "pk", "offset": 140 } },
+    {
+      "name": "no apiUrl key exists — the widget's origin is its script's",
+      "config": { "projectKey": "pk", "apiUrl": "https://evil.example" }
+    }
+  ]
+}

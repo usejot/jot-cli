@@ -1,0 +1,37 @@
+{
+  "$comment": "The thread menu's \"Copy link to this Jot\" (wire.endpoints.shareLink). `endpoint` must match the endpoint table row exactly. `valid` responses must be accepted by ShareLink (contract.json#wire.schemas.ShareLink) and `invalid` ones rejected. Copy `url` only when `shared` is true; a 404 (NOT_FOUND) or `shared: false` means sharing is off for this Jot or its workspace, and a member falls back to the dashboard deep link. An anonymous reviewer is refused (FORBIDDEN) — they get no menu item.",
+  "contractVersion": "0.9.0",
+  "endpoint": {
+    "name": "shareLink",
+    "method": "POST",
+    "path": "/comments/:id/share",
+    "auth": "token",
+    "request": null,
+    "response": "ShareLink"
+  },
+  "valid": [
+    {
+      "name": "a public link",
+      "response": { "url": "https://app.usejot.co/j/Zk3n9QxV2bLp0sT7yWc4hA", "shared": true }
+    },
+    {
+      "name": "a team-only Jot still names its link",
+      "response": { "url": "https://app.usejot.co/j/Zk3n9QxV2bLp0sT7yWc4hA", "shared": false }
+    }
+  ],
+  "invalid": [
+    { "name": "no url", "response": { "shared": true } },
+    {
+      "name": "a url that is not a url",
+      "response": { "url": "/j/Zk3n9QxV2bLp0sT7yWc4hA", "shared": true }
+    },
+    {
+      "name": "no shared flag",
+      "response": { "url": "https://app.usejot.co/j/Zk3n9QxV2bLp0sT7yWc4hA" }
+    },
+    {
+      "name": "shared as a string",
+      "response": { "url": "https://app.usejot.co/j/Zk3n9QxV2bLp0sT7yWc4hA", "shared": "true" }
+    }
+  ]
+}

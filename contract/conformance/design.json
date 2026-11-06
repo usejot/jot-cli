@@ -1,0 +1,92 @@
+{
+  "$comment": "Visual parity (SPEC \u00a714). An SDK must draw every icon in `icons` from contract.json#design.icons, every mark variant from design.jotMark, and render every component in `components` from design.ui (with each listed part) plus design.tokens \u2014 never stock platform controls. Every token name referenced anywhere in design.ui must exist in exactly one design.tokens group.",
+  "contractVersion": "0.9.0",
+  "iconStyle": {
+    "viewBox": 24,
+    "strokeWidth": 2,
+    "lineCap": "round",
+    "lineJoin": "round"
+  },
+  "icons": [
+    "x",
+    "ellipsis",
+    "search",
+    "list-filter",
+    "list",
+    "arrow-up",
+    "check",
+    "link",
+    "square"
+  ],
+  "markVariants": ["accent", "on-accent", "mono"],
+  "tokenGroups": ["color", "shadow", "radius", "shape", "fontSize", "duration", "easing"],
+  "components": {
+    "fab": ["button", "badge", "mark"],
+    "edgeTab": ["tab", "right", "hover"],
+    "dock": [
+      "bar",
+      "button",
+      "buttonPressed",
+      "separator",
+      "recordRing",
+      "recordStrip",
+      "recordDot",
+      "count",
+      "who",
+      "whoName",
+      "whoLink",
+      "order",
+      "icons"
+    ],
+    "card": [
+      "box",
+      "head",
+      "title",
+      "body",
+      "centredBody",
+      "heading",
+      "sub",
+      "foot",
+      "cornerTopLeft",
+      "cornerTopRight",
+      "cornerBottomRight",
+      "cornerBottomLeft"
+    ],
+    "button": ["base", "primary", "ghost", "small", "pill", "disabled", "link"],
+    "iconButton": ["base", "hover"],
+    "input": ["base", "focus", "textarea", "label", "codeBox"],
+    "pill": ["base", "dot", "OPEN", "IN_PROGRESS", "RESOLVED", "APPROVED"],
+    "tag": ["row", "base", "bug", "ui", "content", "perf", "neutral"],
+    "avatar": ["initial", "guest", "stack", "sizes"],
+    "pin": [
+      "capsule",
+      "growUpLeft",
+      "growDownRight",
+      "growDownLeft",
+      "faceOverlap",
+      "color",
+      "maxFaces"
+    ],
+    "sheet": ["box", "grip", "handle", "head", "foot"],
+    "menu": ["box", "item", "itemChecked", "hint", "dot", "danger", "separator", "label"],
+    "composer": ["order", "labels", "attachment", "thumbnail", "send"],
+    "annotate": ["bar", "button", "textButton", "done", "separator", "order", "glyphs", "marks"],
+    "thread": ["head", "message", "reply", "author", "text", "replyBar", "mention"],
+    "panel": [
+      "head",
+      "search",
+      "row",
+      "rowButton",
+      "meta",
+      "preview",
+      "replies",
+      "unread",
+      "empty"
+    ],
+    "intro": ["mark", "order", "copy"],
+    "signIn": ["mark", "emailOrder", "codeOrder"],
+    "boot": ["mark"],
+    "crash": ["mark", "order", "copy"],
+    "picker": ["chip", "detail", "mark"]
+  }
+}

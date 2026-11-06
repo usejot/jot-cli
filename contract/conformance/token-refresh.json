@@ -1,0 +1,165 @@
+{
+  "$comment": "Refresh-on-401 (contract.json#wire.tokenRefresh). Each scenario starts signed in with `token` and sends `requests` (concurrently when there are several). `answers` say how the server replies to an endpoint for the bearer it carried (null = no bearer); an authRefresh answer with `token` is a success that issues that token. `expect.calls` is the exact order of calls for single-request scenarios. A refused refresh drops the token, signs the person out, and the retry goes out with no bearer.",
+  "contractVersion": "0.9.0",
+  "scenarios": [
+    {
+      "name": "an expired token refreshes once and the request is retried",
+      "token": "stale",
+      "requests": ["members"],
+      "answers": [
+        {
+          "endpoint": "members",
+          "bearer": "stale",
+          "status": 401
+        },
+        {
+          "endpoint": "authRefresh",
+          "bearer": "stale",
+          "status": 200,
+          "token": "fresh"
+        },
+        {
+          "endpoint": "members",
+          "bearer": "fresh",
+          "status": 200
+        }
+      ],
+      "expect": {
+        "calls": [
+          ["members", "stale"],
+          ["authRefresh", "stale"],
+          ["members", "fresh"]
+        ],
+        "statuses": [200],
+        "token": "fresh",
+        "signedOut": false,
+        "refreshes": 1
+      }
+    },
+    {
+      "name": "a refused refresh signs out and retries without a bearer",
+      "token": "ancient",
+      "requests": ["forPage"],
+      "answers": [
+        {
+          "endpoint": "forPage",
+          "bearer": "ancient",
+          "status": 401
+        },
+        {
+          "endpoint": "authRefresh",
+          "bearer": "ancient",
+          "status": 401
+        },
+        {
+          "endpoint": "forPage",
+          "bearer": null,
+          "status": 200
+        }
+      ],
+      "expect": {
+        "calls": [
+          ["forPage", "ancient"],
+          ["authRefresh", "ancient"],
+          ["forPage", null]
+        ],
+        "statuses": [200],
+        "token": null,
+        "signedOut": true,
+        "refreshes": 1
+      }
+    },
+    {
+      "name": "a 401 for a request with no bearer is an access answer, never a refresh",
+      "token": null,
+      "requests": ["forPage"],
+      "answers": [
+        {
+          "endpoint": "forPage",
+          "bearer": null,
+          "status": 401
+        }
+      ],
+      "expect": {
+        "calls": [["forPage", null]],
+        "statuses": [401],
+        "token": null,
+        "signedOut": false,
+        "refreshes": 0
+      }
+    },
+    {
+      "name": "the retry happens exactly once",
+      "token": "stale",
+      "requests": ["members"],
+      "answers": [
+        {
+          "endpoint": "members",
+          "bearer": "stale",
+          "status": 401
+        },
+        {
+          "endpoint": "authRefresh",
+          "bearer": "stale",
+          "status": 200,
+          "token": "fresh"
+        },
+        {
+          "endpoint": "members",
+          "bearer": "fresh",
+          "status": 401
+        }
+      ],
+      "expect": {
+        "calls": [
+          ["members", "stale"],
+          ["authRefresh", "stale"],
+          ["members", "fresh"]
+        ],
+        "statuses": [401],
+        "token": "fresh",
+        "signedOut": false,
+        "refreshes": 1
+      }
+    },
+    {
+      "name": "concurrent 401s share one refresh",
+      "token": "stale",
+      "requests": ["members", "forPage"],
+      "answers": [
+        {
+          "endpoint": "members",
+          "bearer": "stale",
+          "status": 401
+        },
+        {
+          "endpoint": "forPage",
+          "bearer": "stale",
+          "status": 401
+        },
+        {
+          "endpoint": "authRefresh",
+          "bearer": "stale",
+          "status": 200,
+          "token": "fresh"
+        },
+        {
+          "endpoint": "members",
+          "bearer": "fresh",
+          "status": 200
+        },
+        {
+          "endpoint": "forPage",
+          "bearer": "fresh",
+          "status": 200
+        }
+      ],
+      "expect": {
+        "statuses": [200, 200],
+        "token": "fresh",
+        "signedOut": false,
+        "refreshes": 1
+      }
+    }
+  ]
+}

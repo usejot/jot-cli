@@ -1,0 +1,58 @@
+{
+  "$comment": "pageKeyFor(url) — how comments, presence and analytics group the same page or screen: scheme + host + path, query and fragment dropped. A native app:// screen drops its host too — the bundle id differs per platform (iOS co.usejot.jotExample, Android co.usejot.jot_example) and one project is one app, so the same screen keys the same on every device. Never the string \"null\". An unparseable value is its own key.",
+  "contractVersion": "0.9.0",
+  "keys": [
+    {
+      "url": "https://app.acme.test/checkout?step=2#pay",
+      "key": "https://app.acme.test/checkout"
+    },
+    {
+      "url": "https://app.acme.test:8443/a/b/",
+      "key": "https://app.acme.test:8443/a/b/"
+    },
+    {
+      "url": "http://localhost:3000/",
+      "key": "http://localhost:3000/"
+    },
+    {
+      "url": "HTTPS://App.Acme.Test/Path",
+      "key": "https://app.acme.test/Path"
+    },
+    {
+      "url": "app://com.acme.shop/Checkout?tab=1",
+      "key": "app:///Checkout"
+    },
+    {
+      "url": "app://com.acme.shop/settings/profile",
+      "key": "app:///settings/profile"
+    },
+    {
+      "url": "app://com.acme.shop/",
+      "key": "app:///"
+    },
+    {
+      "url": "app://co.usejot.jotExample/Order%20Details",
+      "key": "app:///Order%20Details"
+    },
+    {
+      "url": "app://co.usejot.jot_example/Order%20Details",
+      "key": "app:///Order%20Details"
+    },
+    {
+      "url": "app:///Order%20Details",
+      "key": "app:///Order%20Details"
+    },
+    {
+      "url": "file:///Users/ada/index.html",
+      "key": "file:///Users/ada/index.html"
+    },
+    {
+      "url": "about:blank",
+      "key": "about:blank"
+    },
+    {
+      "url": "not a url",
+      "key": "not a url"
+    }
+  ]
+}
