@@ -100,6 +100,8 @@ jobs:
       id-token: write
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # setup-node fills NODE_AUTH_TOKEN with a placeholder when it is empty, so ask the secret itself
+      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
       # npm only signs provenance for a public source repo; a private one publishes without it
       NPM_CONFIG_PROVENANCE: ${{ github.event.repository.private == false }}
     steps:
@@ -128,7 +130,7 @@ jobs:
       - name: Publish the platform packages
         run: |
           # no NPM_TOKEN secret: the builds stay as artifacts, published by hand
-          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "NPM_TOKEN not set; skipping publish"; exit 0; fi
+          if [ "$HAS_NPM_TOKEN" != "true" ]; then echo "NPM_TOKEN not set; skipping publish"; exit 0; fi
           for dir in npm/cli-*/; do
             (cd "$dir" && npm publish --access public)
           done
@@ -137,5 +139,5 @@ jobs:
         working-directory: npm/cli
         run: |
           # no NPM_TOKEN secret: the builds stay as artifacts, published by hand
-          if [ -z "$NODE_AUTH_TOKEN" ]; then echo "NPM_TOKEN not set; skipping publish"; exit 0; fi
+          if [ "$HAS_NPM_TOKEN" != "true" ]; then echo "NPM_TOKEN not set; skipping publish"; exit 0; fi
           npm publish --access public
